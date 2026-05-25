@@ -163,8 +163,18 @@ thesis.
 Abhirva Navalakhe — MSc Autonomous Vehicle Dynamics & Control, Cranfield
 University, 2024–25.
 
-Supervisors: Dr. Sabyasachi Mondal and Dr. Venkatraman Renganathan.
+## Acknowledgments
+
+This work was carried out as an MSc thesis at Cranfield University in
+collaboration with QinetiQ.
+
+- **Academic supervisors:** Dr. Sabyasachi Mondal and Dr. Venkatraman
+  Renganathan (Cranfield University)
+- **Industry supervisor:** Jeremy Baxter (QinetiQ)
+
+Released publicly with academic supervisor approval following thesis
+submission.
 
 ## License
 
-Apache License 2.0. See [LICENSE](LICENSE) and [NOTICE](NOTICE).
+MIT License. See [LICENSE](LICENSE).
