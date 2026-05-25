@@ -11,7 +11,7 @@ from typing import Optional
 @dataclass
 class Cell:
     """Represents a single surveillance cell in the discretized grid.
-    
+
     Attributes:
         id: Unique identifier for the cell
         x: X coordinate of cell center (m)
@@ -20,37 +20,37 @@ class Cell:
         priority: Surveillance priority weight (1.0 = normal)
         is_covered: Whether cell is currently being observed
     """
-    
+
     id: str
     x: float
     y: float
     last_seen_ts: Optional[float] = None
     priority: float = 1.0
     is_covered: bool = False
-    
+
     def __post_init__(self):
         """Validate cell parameters after initialization."""
         if self.priority <= 0:
             raise ValueError(f"Priority must be positive, got {self.priority}")
-    
+
     def age(self, current_time: float) -> float:
         """Calculate age since last observation.
-        
+
         Args:
             current_time: Current simulation time
-            
+
         Returns:
             Age in seconds, or infinity if never observed
         """
         if self.last_seen_ts is None:
-            return float('inf')
+            return float("inf")
         return max(0, current_time - self.last_seen_ts)
-    
+
     def update_observation(self, timestamp: float) -> None:
         """Update cell with new observation timestamp.
-        
+
         Args:
             timestamp: Time of observation
         """
         self.last_seen_ts = timestamp
-        self.is_covered = True 
+        self.is_covered = True

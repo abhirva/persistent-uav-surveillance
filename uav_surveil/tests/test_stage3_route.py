@@ -15,4 +15,4 @@ def test_route_generation_counts():
     # Check that every cell appears exactly once across all routes
     cell_ids = {c.id for c in cells}
     routed_ids = {cid for r in routes for cid in r.cell_sequence}
-    assert cell_ids == routed_ids 
+    assert cell_ids == routed_ids

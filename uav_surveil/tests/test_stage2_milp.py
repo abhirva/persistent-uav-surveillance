@@ -21,4 +21,4 @@ def test_milp_matches_closed_form():
     # If MILP unavailable, the wrapper falls back and we still match.
     assert res_milp.n_launch == res_closed.n_launch
     assert res_milp.n_spare == res_closed.n_spare
-    assert math.isclose(res_milp.total_cost, res_closed.total_cost) 
+    assert math.isclose(res_milp.total_cost, res_closed.total_cost)

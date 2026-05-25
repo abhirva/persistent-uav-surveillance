@@ -8,6 +8,7 @@ then orders each bucket with a greedy nearest-neighbour heuristic.
 The public API is identical to the other route generators so it slots straight
 into *stage3_route_factory*.
 """
+
 from __future__ import annotations
 
 from typing import Sequence, List, Tuple
@@ -27,7 +28,12 @@ __all__ = [
 # ---------------------------------------------------------------------------
 
 
-def _kmeans(points: np.ndarray, k: int, max_iter: int = 10, rng: np.random.Generator | None = None):
+def _kmeans(
+    points: np.ndarray,
+    k: int,
+    max_iter: int = 10,
+    rng: np.random.Generator | None = None,
+):
     if rng is None:
         rng = np.random.default_rng(42)
     n = points.shape[0]
@@ -62,7 +68,10 @@ def _kmeans(points: np.ndarray, k: int, max_iter: int = 10, rng: np.random.Gener
 # Helper: greedy nearest-neighbour ordering
 # ---------------------------------------------------------------------------
 
-def _order_nearest_neighbour(cells: List[Cell], depot: Tuple[float, float]) -> List[Cell]:
+
+def _order_nearest_neighbour(
+    cells: List[Cell], depot: Tuple[float, float]
+) -> List[Cell]:
     if len(cells) <= 2:
         return cells
     # Start from cell with smallest (x+y) to get deterministic order
@@ -72,7 +81,9 @@ def _order_nearest_neighbour(cells: List[Cell], depot: Tuple[float, float]) -> L
     remaining.remove(start)
     current = start
     while remaining:
-        nxt = min(remaining, key=lambda c: (c.x - current.x) ** 2 + (c.y - current.y) ** 2)
+        nxt = min(
+            remaining, key=lambda c: (c.x - current.x) ** 2 + (c.y - current.y) ** 2
+        )
         visited.append(nxt)
         remaining.remove(nxt)
         current = nxt
@@ -83,7 +94,10 @@ def _order_nearest_neighbour(cells: List[Cell], depot: Tuple[float, float]) -> L
 # Helper: rotate route so it starts at cell nearest to depot
 # ---------------------------------------------------------------------------
 
-def _rotate_to_nearest_depot(cells: List[Cell], depot: Tuple[float, float]) -> List[Cell]:
+
+def _rotate_to_nearest_depot(
+    cells: List[Cell], depot: Tuple[float, float]
+) -> List[Cell]:
     if not cells:
         return cells
     nearest_idx = min(
@@ -98,11 +112,12 @@ def _rotate_to_nearest_depot(cells: List[Cell], depot: Tuple[float, float]) -> L
 # Public API
 # ---------------------------------------------------------------------------
 
+
 def generate_routes_kmnn(
-    cells: Sequence[Cell], 
-    n_launch: int, 
-    cruise_speed: float, 
-    depot: Tuple[float, float] = (0.0, 0.0)
+    cells: Sequence[Cell],
+    n_launch: int,
+    cruise_speed: float,
+    depot: Tuple[float, float] = (0.0, 0.0),
 ) -> Tuple[List[Route], object]:
     """Generate *n_launch* routes using K-means clustering + NN pathing.
 
@@ -117,12 +132,12 @@ def generate_routes_kmnn(
 
     pts = np.array([(c.x, c.y) for c in cells])
     assignments = _kmeans(pts, n_launch)
-    
+
     # Build routes per cluster
     clusters: List[List[Cell]] = [[] for _ in range(n_launch)]
     for cell, idx in zip(cells, assignments):
         clusters[idx].append(cell)
-    
+
     routes: List[Route] = []
     longest_loop = 0.0
     for idx, cluster in enumerate(clusters):
@@ -155,7 +170,9 @@ def generate_routes_kmnn(
     placeholder_cell_id = cells[0].id if cells else "placeholder"
     while len(routes) < n_launch:
         routes.append(
-            Route(id=f"kmnn_empty_{len(routes):02d}", cell_sequence=[placeholder_cell_id])
+            Route(
+                id=f"kmnn_empty_{len(routes):02d}", cell_sequence=[placeholder_cell_id]
+            )
         )
 
     summary = type("RouteSetSummary", (), {})()
@@ -163,4 +180,4 @@ def generate_routes_kmnn(
     summary.cells_per_route = [len(r.cell_sequence) for r in routes]
     summary.longest_loop_time = longest_loop
 
-    return routes, summary 
+    return routes, summary

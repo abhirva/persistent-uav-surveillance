@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 @dataclass
 class BatteryOptimizationResult:
     """Result of battery reserve optimization.
-    
+
     Attributes:
         xi_optimal: Optimal battery reserve fraction (0-1)
         is_feasible: Whether mission is feasible within constraints
@@ -24,6 +24,7 @@ class BatteryOptimizationResult:
         margin_distance: Distance margin in meters
         utilization: Battery utilization percentage (1 - xi_optimal)
     """
+
     xi_optimal: float
     is_feasible: bool
     margin_seconds: float
@@ -117,35 +118,35 @@ def optimize_battery_reserve(
 
 def battery_feasible(
     d_ferry: float,
-    l_grid: float, 
+    l_grid: float,
     v_max: float,
     endurance: float,
-    soc_floor: float = 0.1
+    soc_floor: float = 0.1,
 ) -> bool:
     """Check if mission is feasible within single battery constraints.
-    
+
     This is the FEASIBILITY VALIDATOR approach - checks if a mission
     can be completed with a predetermined battery reserve.
-    
+
     Validates the fundamental battery constraint from the reference:
     2*d_ferry + l_grid <= v_max * endurance * (1 - soc_floor)
-    
+
     This ensures UAV can:
     1. Ferry from depot to grid edge (d_ferry)
-    2. Complete surveillance pattern (l_grid) 
+    2. Complete surveillance pattern (l_grid)
     3. Return to depot (d_ferry)
     4. Maintain SoC above safety floor (soc_floor)
-    
+
     Args:
         d_ferry: Maximum ferry distance from depot to grid edge (m)
         l_grid: Total surveillance grid patrol distance (m)
         v_max: Maximum cruise velocity (m/s)
         endurance: Total battery endurance in seconds
         soc_floor: Minimum SoC safety floor (default 0.1 = 10%)
-        
+
     Returns:
         True if mission is battery-feasible
-        
+
     Raises:
         ValueError: If parameters are invalid or mission is infeasible
     """
@@ -162,13 +163,13 @@ def battery_feasible(
         raise ValueError(f"SoC floor must be in [0, 1), got {soc_floor}")
     if soc_floor < 0.1:
         raise ValueError(f"SoC floor must be >= 0.1 for safety, got {soc_floor}")
-    
+
     # Calculate total mission distance
     total_distance = 2 * d_ferry + l_grid  # Ferry out + patrol + ferry back
-    
+
     # Calculate available flight distance with SoC reserve
     available_distance = v_max * endurance * (1.0 - soc_floor)
-    
+
     # Check feasibility constraint
     if total_distance > available_distance:
         raise ValueError(
@@ -178,30 +179,27 @@ def battery_feasible(
             f"v_max: {v_max:.1f}m/s, endurance: {endurance:.1f}s, "
             f"soc_floor: {soc_floor:.1%})"
         )
-    
+
     return True
 
 
 def calculate_max_grid_distance(
-    d_ferry: float,
-    v_max: float, 
-    endurance: float,
-    soc_floor: float = 0.1
+    d_ferry: float, v_max: float, endurance: float, soc_floor: float = 0.1
 ) -> float:
     """Calculate maximum feasible grid patrol distance.
-    
+
     Given ferry distance and battery constraints, calculates the maximum
     surveillance grid distance that can be covered in a single battery cycle.
-    
+
     Args:
         d_ferry: Ferry distance from depot to grid edge (m)
         v_max: Maximum cruise velocity (m/s)
         endurance: Total battery endurance in seconds
         soc_floor: Minimum SoC safety floor (default 0.1)
-        
+
     Returns:
         Maximum feasible grid patrol distance (m)
-        
+
     Raises:
         ValueError: If parameters are invalid or no grid patrol is possible
     """
@@ -216,34 +214,30 @@ def calculate_max_grid_distance(
         raise ValueError(f"SoC floor must be in [0, 1), got {soc_floor}")
     if soc_floor < 0.1:
         raise ValueError(f"SoC floor must be >= 0.1 for safety, got {soc_floor}")
-    
+
     # Calculate available distance budget
     available_distance = v_max * endurance * (1.0 - soc_floor)
-    
+
     # Subtract ferry distances (out and back)
     grid_distance = available_distance - 2 * d_ferry
-    
+
     if grid_distance <= 0:
         raise ValueError(
             f"No grid patrol possible: ferry distances {2*d_ferry:.1f}m "
             f"exceed available {available_distance:.1f}m"
         )
-    
+
     return grid_distance
 
 
-def estimate_mission_time(
-    d_ferry: float,
-    l_grid: float,
-    v_max: float
-) -> float:
+def estimate_mission_time(d_ferry: float, l_grid: float, v_max: float) -> float:
     """Estimate total mission time for given distances.
-    
+
     Args:
         d_ferry: Ferry distance (m)
-        l_grid: Grid patrol distance (m) 
+        l_grid: Grid patrol distance (m)
         v_max: Cruise velocity (m/s)
-        
+
     Returns:
         Estimated mission time (seconds)
     """
@@ -304,73 +298,78 @@ def analyze_battery_margin(
 
 # Configuration-based convenience functions
 
-def optimize_battery_from_config(config: 'SystemParameters', l_grid: float) -> BatteryOptimizationResult:
+
+def optimize_battery_from_config(
+    config: "SystemParameters", l_grid: float
+) -> BatteryOptimizationResult:
     """Optimize battery reserve using system configuration.
-    
+
     Args:
         config: System configuration with all parameters
         l_grid: Grid patrol distance (calculated by Stage 1)
-        
+
     Returns:
         Battery optimization result
     """
     params = config.get_battery_constraint_params()
     return optimize_battery_reserve(
-        d_ferry=params['d_ferry'],
+        d_ferry=params["d_ferry"],
         l_grid=l_grid,
-        v_max=params['v_max'],
-        endurance=params['endurance'],
-        xi_max=params['xi_max'],
-        soc_floor=params['soc_floor']
+        v_max=params["v_max"],
+        endurance=params["endurance"],
+        xi_max=params["xi_max"],
+        soc_floor=params["soc_floor"],
     )
 
 
-def validate_mission_feasibility(config: 'SystemParameters', l_grid: float) -> bool:
+def validate_mission_feasibility(config: "SystemParameters", l_grid: float) -> bool:
     """Validate mission feasibility using system configuration.
-    
+
     Args:
         config: System configuration
         l_grid: Grid patrol distance (calculated by Stage 1)
-        
+
     Returns:
         True if mission is feasible
     """
     params = config.get_battery_constraint_params()
     return battery_feasible(
-        d_ferry=params['d_ferry'],
+        d_ferry=params["d_ferry"],
         l_grid=l_grid,
-        v_max=params['v_max'],
-        endurance=params['endurance'],
-        soc_floor=params['soc_floor']
+        v_max=params["v_max"],
+        endurance=params["endurance"],
+        soc_floor=params["soc_floor"],
     )
 
 
-def get_max_grid_from_config(config: 'SystemParameters') -> float:
+def get_max_grid_from_config(config: "SystemParameters") -> float:
     """Calculate maximum grid patrol distance from configuration.
-    
+
     Args:
         config: System configuration
-        
+
     Returns:
         Maximum feasible grid patrol distance (m)
     """
     params = config.get_battery_constraint_params()
     return calculate_max_grid_distance(
-        d_ferry=params['d_ferry'],
-        v_max=params['v_max'],
-        endurance=params['endurance'],
-        soc_floor=params['soc_floor']
+        d_ferry=params["d_ferry"],
+        v_max=params["v_max"],
+        endurance=params["endurance"],
+        soc_floor=params["soc_floor"],
     )
 
 
-def analyze_mission_from_config(config: 'SystemParameters', l_grid: float) -> BatteryOptimizationResult:
+def analyze_mission_from_config(
+    config: "SystemParameters", l_grid: float
+) -> BatteryOptimizationResult:
     """Complete battery analysis from configuration.
-    
+
     Args:
         config: System configuration
         l_grid: Grid patrol distance
-        
+
     Returns:
         Complete battery analysis result with feasibility and margins
     """
-    return optimize_battery_from_config(config, l_grid) 
+    return optimize_battery_from_config(config, l_grid)

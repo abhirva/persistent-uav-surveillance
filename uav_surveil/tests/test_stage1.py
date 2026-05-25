@@ -13,4 +13,6 @@ def test_baseline_grid_dimensions():
     assert len(cells) == expected_cols * expected_rows
 
     # Simple coverage check should return True
-    assert validate_grid_coverage(cells, cfg.mission.area_width, cfg.mission.area_length) 
+    assert validate_grid_coverage(
+        cells, cfg.mission.area_width, cfg.mission.area_length
+    )

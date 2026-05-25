@@ -1,8 +1,11 @@
 """Tests for Stage-3A K-means + Nearest-Neighbour route generator."""
 
 import pytest
-pytest.skip("KMNN performance target still evolving – test skipped for now",
-            allow_module_level=True)
+
+pytest.skip(
+    "KMNN performance target still evolving – test skipped for now",
+    allow_module_level=True,
+)
 
 
 from uav_surveil.stage3_route_kmnn import generate_routes_kmnn
@@ -24,4 +27,4 @@ def test_kmnn_longest_loop_under_threshold():
     routes, summary = generate_routes_kmnn(cells, n_launch, cfg.uav.cruise_speed)
 
     assert len(routes) == n_launch
-    assert summary.longest_loop_time < cfg.stl.max_revisit_gap * 1.2  # 20% slack 
+    assert summary.longest_loop_time < cfg.stl.max_revisit_gap * 1.2  # 20% slack

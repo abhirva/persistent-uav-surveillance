@@ -106,9 +106,7 @@ def generate_routes_greedy(
 
     routes: List[Route] = []
     longest_loop = 0.0
-    cell_size_est = (
-        abs(ordered[0].x - ordered[1].x) if len(ordered) > 1 else 0.0
-    )
+    cell_size_est = abs(ordered[0].x - ordered[1].x) if len(ordered) > 1 else 0.0
 
     for idx, chunk in enumerate(cell_chunks):
         route_id = f"route_{idx:02d}"
@@ -119,9 +117,12 @@ def generate_routes_greedy(
         duration = distance / cruise_speed if cruise_speed > 0 else 0.0
 
         # loop time includes ferry to first cell & back to depot (approx)
-        loop_time = duration + 2 * (
-            ((chunk[0].x - depot[0]) ** 2 + (chunk[0].y - depot[1]) ** 2) ** 0.5
-        ) / cruise_speed
+        loop_time = (
+            duration
+            + 2
+            * (((chunk[0].x - depot[0]) ** 2 + (chunk[0].y - depot[1]) ** 2) ** 0.5)
+            / cruise_speed
+        )
 
         longest_loop = max(longest_loop, loop_time)
 
@@ -145,6 +146,7 @@ def generate_routes_greedy(
 
 # Convenience wrapper from config
 
+
 def generate_routes_from_config(
     config: SystemParameters, cells: Sequence[Cell], n_launch: int
 ):
@@ -155,4 +157,4 @@ def generate_routes_from_config(
         n_launch,
         cruise_speed=config.uav.cruise_speed,
         depot=(config.mission.depot_x, config.mission.depot_y),
-    ) 
+    )

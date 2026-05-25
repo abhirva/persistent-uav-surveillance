@@ -1,1 +1,1 @@
-"""Test suite for UAV surveillance system components.""" 
+"""Test suite for UAV surveillance system components."""

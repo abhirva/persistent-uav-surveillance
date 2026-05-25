@@ -24,6 +24,7 @@ import os
 from typing import Dict
 
 import matplotlib
+
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
@@ -35,8 +36,10 @@ def _ensure_dir(path: str) -> None:
 
 def _read_metrics_csv(path: str) -> Dict[str, np.ndarray]:
     import csv
+
     try:
         import pandas as pd  # type: ignore
+
         df = pd.read_csv(path)
         df.columns = [c.strip().lower() for c in df.columns]
         return {c: df[c].to_numpy(dtype=float) for c in df.columns}
@@ -62,9 +65,13 @@ def plot_manual_contingency(base_tag: str, t_fail: float, out_png: str) -> None:
     t = m.get("time")
     act = m.get("active_uavs")
     swp = m.get("swapping_uavs")
-    rot = m.get("spare_uavs")  # rotation spares only (contingency excluded by sim metrics)
+    rot = m.get(
+        "spare_uavs"
+    )  # rotation spares only (contingency excluded by sim metrics)
     if t is None or act is None or swp is None or rot is None:
-        raise SystemExit("metrics CSV missing required columns: time, active_uavs, swapping_uavs, spare_uavs")
+        raise SystemExit(
+            "metrics CSV missing required columns: time, active_uavs, swapping_uavs, spare_uavs"
+        )
 
     # Contingency step: 1 up to t_fail (exclusive), then 0 afterwards
     cont = np.where(t < float(t_fail), 1.0, 0.0)
@@ -114,6 +121,7 @@ def plot_manual_contingency(base_tag: str, t_fail: float, out_png: str) -> None:
     ax.set_title("Fleet state over time")
     try:
         from matplotlib.ticker import MaxNLocator
+
         ax.yaxis.set_major_locator(MaxNLocator(integer=True))
     except Exception:
         pass
@@ -128,11 +136,17 @@ def plot_manual_contingency(base_tag: str, t_fail: float, out_png: str) -> None:
 
 
 def main() -> None:
-    p = argparse.ArgumentParser(description="Temporary manual contingency fleet-state plotter")
+    p = argparse.ArgumentParser(
+        description="Temporary manual contingency fleet-state plotter"
+    )
     p.add_argument("--base", required=True, help="Base tag (path before _metrics.csv)")
     p.add_argument("--t-fail", type=float, default=1800.0, help="Failure time (s)")
     p.add_argument("--out", default="", help="Output PNG path (optional)")
-    p.add_argument("--make-tripanel", action="store_true", help="Also render a clean failure tripanel with contingency band")
+    p.add_argument(
+        "--make-tripanel",
+        action="store_true",
+        help="Also render a clean failure tripanel with contingency band",
+    )
     args = p.parse_args()
 
     base = args.base
@@ -144,26 +158,40 @@ def main() -> None:
     print("Saved:", out)
 
     if args.make_tripanel:
-        out_tri = os.path.join("figures", f"{os.path.basename(base)}_v15_fail_timeline.png")
+        out_tri = os.path.join(
+            "figures", f"{os.path.basename(base)}_v15_fail_timeline.png"
+        )
         plot_failure_tripanel_clean(base, args.t_fail, out_tri, theta=180.0)
         print("Saved:", out_tri)
 
 
-def plot_failure_tripanel_clean(base_tag: str, t_fail: float, out_png: str, theta: float = 180.0) -> None:
+def plot_failure_tripanel_clean(
+    base_tag: str, t_fail: float, out_png: str, theta: float = 180.0
+) -> None:
     """Three aligned panels: coverage, overdue, fleet state (with manual contingency)."""
     m = _read_metrics_csv(base_tag + "_metrics.csv")
     t = m.get("time")
     cov = m.get("coverage_%")
     roll = m.get("rolling_avg_%")
     overdue = m.get("cells_overdue")
-    act = m.get("active_uavs"); swp = m.get("swapping_uavs"); rot = m.get("spare_uavs")
-    if t is None or cov is None or overdue is None or act is None or swp is None or rot is None:
+    act = m.get("active_uavs")
+    swp = m.get("swapping_uavs")
+    rot = m.get("spare_uavs")
+    if (
+        t is None
+        or cov is None
+        or overdue is None
+        or act is None
+        or swp is None
+        or rot is None
+    ):
         raise SystemExit("metrics CSV missing required columns")
 
     tf = float(t_fail)
     cont = np.where(t < tf, 1.0, 0.0)
 
     import matplotlib.pyplot as _plt
+
     fig, axs = _plt.subplots(3, 1, figsize=(11, 8.0), sharex=True)
 
     # Panel 1: Coverage
@@ -184,12 +212,26 @@ def plot_failure_tripanel_clean(base_tag: str, t_fail: float, out_png: str, thet
     axs[1].grid(True, alpha=0.3)
 
     # Panel 3: Fleet state with contingency
-    axs[2].stackplot(t, act, swp, rot, cont,
-                     labels=["On mission", "Swapping", "Rotation spares", "Contingency"],
-                     colors=["#2a9d8f", "#e9c46a", "#264653", "#7b1fa2"],
-                     alpha=0.9, step="post")
+    axs[2].stackplot(
+        t,
+        act,
+        swp,
+        rot,
+        cont,
+        labels=["On mission", "Swapping", "Rotation spares", "Contingency"],
+        colors=["#2a9d8f", "#e9c46a", "#264653", "#7b1fa2"],
+        alpha=0.9,
+        step="post",
+    )
     # Deployed overlay as dotted line
-    axs[2].plot(t, act + swp, color="#455a64", ls=":", lw=1.2, label="Deployed UAVs (active + swapping)")
+    axs[2].plot(
+        t,
+        act + swp,
+        color="#455a64",
+        ls=":",
+        lw=1.2,
+        label="Deployed UAVs (active + swapping)",
+    )
     axs[2].axvline(tf, color="#6a1b9a", ls="--", lw=1.1)
     # Horizontal failure label below the bottom axis ticks
     axs[2].annotate(
@@ -218,5 +260,3 @@ def plot_failure_tripanel_clean(base_tag: str, t_fail: float, out_png: str, thet
 
 if __name__ == "__main__":
     main()
-
-

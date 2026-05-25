@@ -24,7 +24,9 @@ def test_low_soc_triggers_return():
 
     apply_policy(uavs, current_time=0.0, config=cfg)
 
-    assert getattr(uav, "_fly_home", False) is True, "UAV should be flagged for return when SoC low"
+    assert (
+        getattr(uav, "_fly_home", False) is True
+    ), "UAV should be flagged for return when SoC low"
 
 
 def test_soc_above_threshold_no_return():
@@ -46,4 +48,6 @@ def test_soc_above_threshold_no_return():
 
     apply_policy(uavs, current_time=0.0, config=cfg)
 
-    assert getattr(uav, "_fly_home", False) is False, "UAV should not be flagged when SoC sufficient" 
+    assert (
+        getattr(uav, "_fly_home", False) is False
+    ), "UAV should not be flagged when SoC sufficient"

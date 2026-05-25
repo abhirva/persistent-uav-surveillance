@@ -57,27 +57,29 @@ def pack_departures_staggered(
 
     # Batch scheduler v2: Spread departures to prevent simultaneous battery drain
     # Strategy: Launch batches with longer gaps to stagger when UAVs need to return
-    
+
     # Calculate how many batches we need
     num_batches = (n + batch_size - 1) // batch_size  # ceiling division
-    
+
     for i, route in enumerate(routes):
         batch_idx = i // batch_size
         within_batch_idx = i % batch_size
-        
+
         # Each batch starts at longer intervals to spread battery drain
         batch_start_time = batch_idx * batch_period
-        
+
         # Within each batch, launch with small gaps (just for pad logistics)
         within_batch_gap = 5.0  # small gap within batch for pad clearance
         route.departure_time = batch_start_time + within_batch_idx * within_batch_gap
-    
+
     # Debug: Print departure schedule
-    print(f"   📅 Batch Schedule (batch_size={batch_size}, batch_period={batch_period}s):")
+    print(
+        f"   📅 Batch Schedule (batch_size={batch_size}, batch_period={batch_period}s):"
+    )
     for i, route in enumerate(routes):
         batch_idx = i // batch_size
         print(f"      UAV {i:2d}: t={route.departure_time:5.1f}s (batch {batch_idx})")
-    
+
     longest_loop = max((r.loop_time or 0.0) for r in routes)
 
     # Estimate simultaneous pads demand
@@ -89,6 +91,7 @@ def pack_departures_staggered(
 
 
 # Convenience wrapper
+
 
 def schedule_from_config(
     config: SystemParameters,
@@ -102,4 +105,4 @@ def schedule_from_config(
         swap_slot=config.battery.hot_swap_time,
         batch_size=config.optimization.batch_size,
         batch_period=config.optimization.batch_period,
-    ) 
+    )

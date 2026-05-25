@@ -32,4 +32,5 @@ def get_route_generator(name: str) -> Generator:
         raise ValueError(f"Unknown route generator '{name}'. Available: {list(_MAP)}")
     return _MAP[name]
 
-__all__ = ["get_route_generator"] 
+
+__all__ = ["get_route_generator"]

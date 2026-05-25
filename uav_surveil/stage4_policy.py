@@ -17,6 +17,7 @@ The policy mutates the UAV objects *in-place* – it does not return a separate
 list of actions, which keeps integration with the existing simulation simple.
 This can be refactored later once the action/event bus is introduced.
 """
+
 from __future__ import annotations
 
 from typing import List
@@ -31,54 +32,56 @@ __all__ = [
 
 
 def get_distance_aware_threshold(
-    uav_x: float, 
-    uav_y: float, 
-    depot_x: float, 
-    depot_y: float, 
-    base_threshold: float = 0.25
+    uav_x: float,
+    uav_y: float,
+    depot_x: float,
+    depot_y: float,
+    base_threshold: float = 0.25,
 ) -> float:
     """Calculate distance-aware battery return threshold.
-    
+
     Mathematical Enhancement:
     -------------------------
     Original: θ_return = 0.25 (fixed)
     Enhanced: θ_return = θ_base + Δθ(d_depot)
-    
+
     Where:
         d_depot = √[(x_uav - x_depot)² + (y_uav - y_depot)²]
         Δθ(d) = { +0.05  if d > 400m (distant: return at 30%)
-                { 0.00   if 200 ≤ d ≤ 400m (mid-range: return at 25%) 
+                { 0.00   if 200 ≤ d ≤ 400m (mid-range: return at 25%)
                 { -0.05  if d < 200m (near: return at 20%)
-    
+
     This risk-adjusted policy ensures distant UAVs have extra battery margin
     for the longer return journey, while nearby UAVs can operate longer.
-    
+
     Args:
         uav_x, uav_y: Current UAV position
-        depot_x, depot_y: Depot position  
+        depot_x, depot_y: Depot position
         base_threshold: Base SoC return threshold (typically 0.25)
-        
+
     Returns:
         Adjusted SoC threshold for this UAV's current position
     """
     import math
-    
+
     # Calculate Euclidean distance to depot
-    distance = math.sqrt((uav_x - depot_x)**2 + (uav_y - depot_y)**2)
-    
+    distance = math.sqrt((uav_x - depot_x) ** 2 + (uav_y - depot_y) ** 2)
+
     # Apply distance-based adjustment
     if distance > 400.0:
         # Distant cells: return earlier (higher threshold)
         return base_threshold + 0.05
     elif distance < 200.0:
-        # Near cells: return later (lower threshold)  
+        # Near cells: return later (lower threshold)
         return base_threshold - 0.05
     else:
         # Mid-range: use base threshold
         return base_threshold
 
 
-def apply_policy(uavs: List[UAV], current_time: float, config: SystemParameters) -> None:
+def apply_policy(
+    uavs: List[UAV], current_time: float, config: SystemParameters
+) -> None:
     """Apply enhanced rule-based Stage-4 policy with distance-aware battery threshold.
 
     Args:
@@ -91,9 +94,9 @@ def apply_policy(uavs: List[UAV], current_time: float, config: SystemParameters)
     # 1) Enhanced battery return rule – distance-aware SoC threshold
     # ---------------------------------------------------------------------
     base_threshold = config.battery.soc_return_threshold
-    depot_x = getattr(config.mission, 'depot_x', -500.0)
-    depot_y = getattr(config.mission, 'depot_y', 0.0)
-    
+    depot_x = getattr(config.mission, "depot_x", -500.0)
+    depot_y = getattr(config.mission, "depot_y", 0.0)
+
     for uav in uavs:
         if uav.state == UAVState.ON_MISSION:
             # Calculate distance-aware threshold
@@ -102,10 +105,13 @@ def apply_policy(uavs: List[UAV], current_time: float, config: SystemParameters)
             )
             # Log once the first time the UAV hits its distance-aware threshold
             import math
+
             distance_to_depot = math.hypot(uav.x - depot_x, uav.y - depot_y)
             if uav.soc <= soc_threshold:
                 if not getattr(uav, "_threshold_logged", False):
-                    print(f"🔋 {uav.id} SoC {uav.soc:.2f} ≤ θ_return {soc_threshold:.2f} at d={distance_to_depot:.0f}m → RTB")
+                    print(
+                        f"🔋 {uav.id} SoC {uav.soc:.2f} ≤ θ_return {soc_threshold:.2f} at d={distance_to_depot:.0f}m → RTB"
+                    )
                     uav._threshold_logged = True
                 # Flag for immediate return; the simulation movement logic will
                 # act on this flag and navigate home.
@@ -117,7 +123,9 @@ def apply_policy(uavs: List[UAV], current_time: float, config: SystemParameters)
     # Count spare UAVs ready on pad (launch_time == inf) – launch decisions
     # are still handled inside *gss.simulation* so we only detect for now.
     spare_ready = sum(
-        1 for uav in uavs if uav.state == UAVState.SPARE and uav.launch_time == float("inf")
+        1
+        for uav in uavs
+        if uav.state == UAVState.SPARE and uav.launch_time == float("inf")
     )
     if spare_ready == 0:
         # Future: trigger immediate launch or quick patch. For baseline we do

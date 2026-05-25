@@ -43,9 +43,15 @@ def _find_run_by_prefix(prefix: str) -> Optional[RunArtifacts]:
     finals = sorted(SIM_DIR.glob(f"{base.name}_final_coverage_gaps_*.csv"))
 
     fig_types = [
-        "coverage_time", "violations_time", "fleet_state", "cost_index",
-        "revisit_percentiles", "revisit_hist_early", "revisit_hist_mid",
-        "revisit_hist_late", "soc_traces",
+        "coverage_time",
+        "violations_time",
+        "fleet_state",
+        "cost_index",
+        "revisit_percentiles",
+        "revisit_hist_early",
+        "revisit_hist_mid",
+        "revisit_hist_late",
+        "soc_traces",
     ]
     figs: Dict[str, Path] = {}
     for ft in fig_types:
@@ -90,7 +96,9 @@ def build_packs(prefixes: List[str]) -> Dict[str, Dict[str, str]]:
             if p is None:
                 return
             files.append(p)
-            manifest.append(f"{label}: {p.relative_to(ROOT)} ({p.stat().st_size} bytes)")
+            manifest.append(
+                f"{label}: {p.relative_to(ROOT)} ({p.stat().st_size} bytes)"
+            )
 
         add(art.metrics, "metrics")
         add(art.soc_series, "soc_series")
@@ -101,7 +109,9 @@ def build_packs(prefixes: List[str]) -> Dict[str, Dict[str, str]]:
         for k, v in art.figures.items():
             add(v, f"figure:{k}")
 
-        pack_name = f"{art.base.name}_pack" if art.base else pref.replace('*', '_') + "_pack"
+        pack_name = (
+            f"{art.base.name}_pack" if art.base else pref.replace("*", "_") + "_pack"
+        )
         zip_path = _zip_pack(pack_name, files, manifest)
         index[pref] = {
             "zip": str(zip_path.relative_to(ROOT)),

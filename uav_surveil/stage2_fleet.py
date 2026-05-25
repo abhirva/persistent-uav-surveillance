@@ -11,15 +11,15 @@ from dataclasses import dataclass
 # Configuration helper (only spare ratio needed for now)
 from .config.parameters import SystemParameters
 
-
 # ---------------------------------------------------------------------------
 # Data class: optimisation outcome (kept unchanged except field docs)
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class FleetOptimizationResult:
     """Result of fleet size optimization.
-    
+
     Attributes:
         n_launch: Number of UAVs to launch for active patrol
         n_spare: Number of spare UAVs to maintain on pad
@@ -30,6 +30,7 @@ class FleetOptimizationResult:
         is_feasible: Whether solution meets all constraints
         solver_status: Optimization solver status
     """
+
     n_launch: int
     n_spare: int
     n_rotation: int
@@ -88,7 +89,7 @@ def optimize_fleet_size(
     # For backward compatibility, calculate rotation/contingency breakdown
     n_contingency = min(1, n_spare)  # Fixed at 1 (or 0 if no spares)
     n_rotation = max(0, n_spare - n_contingency)  # Remaining spares
-    
+
     return FleetOptimizationResult(
         n_launch=n_launch,
         n_spare=n_spare,
@@ -97,7 +98,7 @@ def optimize_fleet_size(
         total_cost=total_cost,
         spare_ratio=n_spare / K_inv,
         is_feasible=True,
-        solver_status="inventory_exact"
+        solver_status="inventory_exact",
     )
 
 
@@ -110,18 +111,18 @@ def optimize_fleet_enhanced(
     force_supervisor_method: bool = False,
 ) -> FleetOptimizationResult:
     """Enhanced fleet optimization with rotation/contingency spare distinction.
-    
+
     Mathematical Enhancement:
     -------------------------
     Original:  minimize C_L * n_L + C_S * n_S
                subject to n_S ≥ β_min * K_inv
-    
-    Enhanced:  minimize C_L * n_L + C_R * n_R + C_C * n_C  
+
+    Enhanced:  minimize C_L * n_L + C_R * n_R + C_C * n_C
                subject to n_R = ⌈n_L / 4⌉     (rotation spares)
                          n_C = 1             (contingency spare)
                          n_S = n_R + n_C     (total spares)
                          n_L + n_S ≤ K_inv   (inventory limit)
-    
+
     Args:
         K_inv: Total available airframes (inventory)
         beta_min: Minimum spare ratio (for comparison only)
@@ -129,26 +130,26 @@ def optimize_fleet_enhanced(
         C_R: Cost coefficient for rotation spares
         C_C: Cost coefficient for contingency spares
         force_supervisor_method: If True, use supervisor's exact formula
-        
+
     Returns:
         FleetOptimizationResult with rotation/contingency breakdown
     """
     import math
-    
+
     if K_inv <= 0:
         raise ValueError("K_inv must be positive")
-    
+
     if force_supervisor_method:
         # Supervisor's Method: Keep existing fleet optimization, just categorize spares
         # Step 1: Use existing logic to determine total spares
         base_result = optimize_fleet_size(K_inv, beta_min, C_L, C_R)
-        
+
         # Step 2: Categorize spares into rotation vs contingency
         n_launch = base_result.n_launch
         n_spare = base_result.n_spare
         n_contingency = min(1, n_spare)  # Fixed at 1 (or 0 if no spares)
         n_rotation = max(0, n_spare - n_contingency)  # Remaining spares
-        
+
         total_cost = C_L * n_launch + C_R * n_rotation + C_C * n_contingency
         return FleetOptimizationResult(
             n_launch=n_launch,
@@ -158,9 +159,9 @@ def optimize_fleet_enhanced(
             total_cost=total_cost,
             spare_ratio=n_spare / K_inv,
             is_feasible=True,
-            solver_status="supervisor_categorized"
+            solver_status="supervisor_categorized",
         )
-    
+
     else:
         # Backward Compatible: Use original logic with breakdown
         result = optimize_fleet_size(K_inv, beta_min, C_L, C_R)
@@ -169,27 +170,25 @@ def optimize_fleet_enhanced(
 
 
 def validate_fleet_configuration(
-    n_launch: int,
-    n_spare: int,
-    spare_floor_ratio: float
+    n_launch: int, n_spare: int, spare_floor_ratio: float
 ) -> bool:
     """Validate fleet configuration meets constraints.
-    
+
     Args:
         n_launch: Number of active patrol UAVs
         n_spare: Number of spare UAVs
         spare_floor_ratio: Required minimum spare ratio
-        
+
     Returns:
         True if configuration is valid
     """
     if n_launch <= 0 or n_spare < 0:
         return False
-    
+
     total_fleet = n_launch + n_spare
     actual_spare_ratio = n_spare / total_fleet if total_fleet > 0 else 0
-    
-    return actual_spare_ratio >= spare_floor_ratio 
+
+    return actual_spare_ratio >= spare_floor_ratio
 
 
 # ---------------------------------------------------------------------------
@@ -288,10 +287,10 @@ def optimize_fleet_from_config(
 
     Attempts MILP solve via Pyomo if *use_milp* is True and a suitable solver
     is available; otherwise falls back to the closed-form exact solution.
-    
+
     Args:
         config: System configuration parameters
-        C_L: Cost coefficient for active UAVs  
+        C_L: Cost coefficient for active UAVs
         C_S: Cost coefficient for spares (used as C_R if enhanced)
         use_milp: Whether to attempt MILP solve
         use_enhanced: Whether to use enhanced fleet sizing with rotation/contingency
@@ -333,4 +332,4 @@ __all__ = [
     "optimize_fleet_enhanced",
     "optimize_fleet_from_config",
     "validate_fleet_configuration",
-] 
+]

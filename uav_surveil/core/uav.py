@@ -9,7 +9,6 @@ from dataclasses import dataclass, field
 from .route import Route
 from enum import Enum
 
-
 # ---------------------------------------------------------------------------
 # UAV operational state used by scheduler and metrics
 # ---------------------------------------------------------------------------
@@ -33,18 +32,18 @@ class UAVState(Enum):
 @dataclass
 class UAV:
     """Represents a single UAV in the surveillance swarm.
-    
+
     Attributes:
         id: Unique identifier for the UAV
         x: Current X coordinate position (m)
-        y: Current Y coordinate position (m) 
+        y: Current Y coordinate position (m)
         soc: State of Charge as percentage (0.0-1.0)
         route_list: Ordered list of routes assigned to this UAV
         launch_time: Planned start time (s) assigned by scheduler
         is_active: Whether UAV is currently active in patrol
         last_update: Timestamp of last telemetry update
     """
-    
+
     id: str
     x: float
     y: float
@@ -54,15 +53,19 @@ class UAV:
     is_active: bool = False
     # Extended attributes ---------------------------------------------------
     state: UAVState = UAVState.SPARE  # Initial state; updated by scheduler
-    swap_timer: float = 0.0          # Remaining hot-swap time (s)
+    swap_timer: float = 0.0  # Remaining hot-swap time (s)
     last_update: Optional[float] = None
-    is_contingency: bool = False     # True if this UAV is reserved for failure scenarios
+    is_contingency: bool = False  # True if this UAV is reserved for failure scenarios
     # Stage-5 failure handling ----------------------------------------------
-    is_failed: bool = False           # Hard failure flag (removed from active control)
-    tail_index_at_failure: Optional[int] = None  # Waypoint index at failure for tail takeover
-    last_insert_time: float = 0.0     # Timestamp of last temporary insert (bridge mode)
-    temp_assignments: Dict[str, int] = field(default_factory=dict)  # failed_id -> count of temporary inserts
-    
+    is_failed: bool = False  # Hard failure flag (removed from active control)
+    tail_index_at_failure: Optional[int] = (
+        None  # Waypoint index at failure for tail takeover
+    )
+    last_insert_time: float = 0.0  # Timestamp of last temporary insert (bridge mode)
+    temp_assignments: Dict[str, int] = field(
+        default_factory=dict
+    )  # failed_id -> count of temporary inserts
+
     def __post_init__(self):
         """Validate UAV parameters after initialization."""
         if not 0.0 <= self.soc <= 1.0:
@@ -74,7 +77,9 @@ class UAV:
         if self.is_active and self.state == UAVState.SPARE:
             self.state = UAVState.ON_MISSION
 
-    def move_towards(self, target_x: float, target_y: float, speed: float, dt: float) -> float:
+    def move_towards(
+        self, target_x: float, target_y: float, speed: float, dt: float
+    ) -> float:
         """Move UAV towards a target position by speed*dt (meters).
         Args:
             target_x: Target X coordinate
@@ -83,6 +88,7 @@ class UAV:
             dt: Time step (s)
         """
         import math
+
         dx = target_x - self.x
         dy = target_y - self.y
         dist = math.hypot(dx, dy)
@@ -93,7 +99,10 @@ class UAV:
         self.y += dy / dist * step
         return step
 
-    def at_position(self, target_x: float, target_y: float, threshold: float = 2.0) -> bool:
+    def at_position(
+        self, target_x: float, target_y: float, threshold: float = 2.0
+    ) -> bool:
         """Check if UAV is within threshold distance of a target position (e.g., cell center)."""
         import math
-        return math.hypot(self.x - target_x, self.y - target_y) <= threshold 
+
+        return math.hypot(self.x - target_x, self.y - target_y) <= threshold

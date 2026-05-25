@@ -25,11 +25,11 @@ from dataclasses import dataclass
 from typing import Dict, List, Optional, Sequence, Tuple
 
 import matplotlib
+
 # Use a non-interactive backend so we can save images without a GUI (no Tk)
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
-
 
 # -----------------------------
 # Utilities
@@ -92,10 +92,7 @@ def read_soc_timeseries(path: str) -> Tuple[np.ndarray, Dict[str, np.ndarray]]:
     if df is not None:
         df.columns = [c.strip() for c in df.columns]
         time = df.iloc[:, 0].to_numpy(dtype=float)
-        series = {
-            str(c): df[c].to_numpy(dtype=float)
-            for c in df.columns[1:]
-        }
+        series = {str(c): df[c].to_numpy(dtype=float) for c in df.columns[1:]}
         return time, series
 
     # Fallback
@@ -118,7 +115,9 @@ def read_soc_timeseries(path: str) -> Tuple[np.ndarray, Dict[str, np.ndarray]]:
                     data[uid].append(float(val))
                 except Exception:
                     data[uid].append(float("nan"))
-    return np.asarray(times, dtype=float), {k: np.asarray(v, dtype=float) for k, v in data.items()}
+    return np.asarray(times, dtype=float), {
+        k: np.asarray(v, dtype=float) for k, v in data.items()
+    }
 
 
 def read_coverage_snapshot(path: str) -> Dict[str, np.ndarray]:
@@ -130,7 +129,7 @@ def read_coverage_snapshot(path: str) -> Dict[str, np.ndarray]:
     if df is not None:
         cols = {c: c.strip().lower() for c in df.columns}
         df.rename(columns=cols, inplace=True)
-        overdue = (df.get("overdue", 0).astype(float).to_numpy())
+        overdue = df.get("overdue", 0).astype(float).to_numpy()
         age = df.get("age", 0).astype(float).to_numpy()
         return {"age": age, "overdue": overdue}
 
@@ -144,10 +143,17 @@ def read_coverage_snapshot(path: str) -> Dict[str, np.ndarray]:
             except Exception:
                 ages.append(float("nan"))
             try:
-                overdue.append(1.0 if row.get("overdue", "False").strip().lower() == "true" else 0.0)
+                overdue.append(
+                    1.0
+                    if row.get("overdue", "False").strip().lower() == "true"
+                    else 0.0
+                )
             except Exception:
                 overdue.append(float("nan"))
-    return {"age": np.asarray(ages, dtype=float), "overdue": np.asarray(overdue, dtype=float)}
+    return {
+        "age": np.asarray(ages, dtype=float),
+        "overdue": np.asarray(overdue, dtype=float),
+    }
 
 
 # -----------------------------
@@ -155,10 +161,13 @@ def read_coverage_snapshot(path: str) -> Dict[str, np.ndarray]:
 # -----------------------------
 
 
-def plot_coverage_time(metrics: Dict[str, np.ndarray], out_png: str,
-                       annotations: Optional[Dict[str, float]] = None,
-                       y_tick_step: int = 5,
-                       show_global_avg: bool = True) -> None:
+def plot_coverage_time(
+    metrics: Dict[str, np.ndarray],
+    out_png: str,
+    annotations: Optional[Dict[str, float]] = None,
+    y_tick_step: int = 5,
+    show_global_avg: bool = True,
+) -> None:
     t = metrics.get("time")
     cov = metrics.get("coverage_%")
     roll = metrics.get("rolling_avg_%")
@@ -187,7 +196,16 @@ def plot_coverage_time(metrics: Dict[str, np.ndarray], out_png: str,
             plt.axvline(tx, color="#cc7722", ls="--", lw=1.2)
             # Put text near the top for readability
             ymax = 98
-            plt.text(tx, ymax, f"{label}\n(t={tx:.0f}s)", rotation=90, va="top", ha="right", fontsize=8, color="#cc7722")
+            plt.text(
+                tx,
+                ymax,
+                f"{label}\n(t={tx:.0f}s)",
+                rotation=90,
+                va="top",
+                ha="right",
+                fontsize=8,
+                color="#cc7722",
+            )
 
     plt.ylim(0, 100)
     if y_tick_step > 0:
@@ -220,9 +238,12 @@ def plot_violations_time(metrics: Dict[str, np.ndarray], out_png: str) -> None:
     plt.close()
 
 
-def plot_compare_coverage(metrics_list: Sequence[Dict[str, np.ndarray]],
-                          labels: Sequence[str], out_png: str,
-                          y_tick_step: int = 5) -> None:
+def plot_compare_coverage(
+    metrics_list: Sequence[Dict[str, np.ndarray]],
+    labels: Sequence[str],
+    out_png: str,
+    y_tick_step: int = 5,
+) -> None:
     plt.figure(figsize=(9, 4))
     for m, label in zip(metrics_list, labels):
         t, cov = m.get("time"), m.get("coverage_%")
@@ -261,26 +282,37 @@ def _rolling_mean(y: np.ndarray, t: np.ndarray, window_s: float) -> np.ndarray:
     return out
 
 
-def plot_compare_coverage_clean(metrics_list: Sequence[Dict[str, np.ndarray]],
-                               labels: Sequence[str], out_png: str,
-                               smooth_s: float = 60.0,
-                               y_tick_step: int = 5) -> None:
+def plot_compare_coverage_clean(
+    metrics_list: Sequence[Dict[str, np.ndarray]],
+    labels: Sequence[str],
+    out_png: str,
+    smooth_s: float = 60.0,
+    y_tick_step: int = 5,
+) -> None:
     """Cleaner overlay: smoothed coverage, concise labels, subdued grid."""
     plt.figure(figsize=(9, 4))
     palette = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728"]
+
     def pretty(lbl: str) -> str:
         l = lbl
-        if "sim_024" in l: return "Under‑provisioned (N=11)"
-        if "sim_020" in l: return "Baseline (N=21)"
-        if "sim_025" in l: return "Over‑provisioned (N=31)"
-        if "sim_026" in l: return "Baseline long‑run (N=21, 9600s)"
+        if "sim_024" in l:
+            return "Under‑provisioned (N=11)"
+        if "sim_020" in l:
+            return "Baseline (N=21)"
+        if "sim_025" in l:
+            return "Over‑provisioned (N=31)"
+        if "sim_026" in l:
+            return "Baseline long‑run (N=21, 9600s)"
         return l
+
     for idx, (m, label) in enumerate(zip(metrics_list, labels)):
         t, cov = m.get("time"), m.get("coverage_%")
         if t is None or cov is None:
             continue
         cov_sm = _rolling_mean(cov, t, smooth_s)
-        plt.plot(t, cov_sm, lw=2.0, label=pretty(label), color=palette[idx % len(palette)])
+        plt.plot(
+            t, cov_sm, lw=2.0, label=pretty(label), color=palette[idx % len(palette)]
+        )
     plt.ylim(0, 100)
     if y_tick_step > 0:
         plt.yticks(np.arange(0, 101, y_tick_step))
@@ -295,44 +327,66 @@ def plot_compare_coverage_clean(metrics_list: Sequence[Dict[str, np.ndarray]],
     plt.close()
 
 
-def plot_compare_violations_clean(metrics_list: Sequence[Dict[str, np.ndarray]],
-                                  labels: Sequence[str], out_png: str,
-                                  smooth_s: float = 60.0) -> None:
+def plot_compare_violations_clean(
+    metrics_list: Sequence[Dict[str, np.ndarray]],
+    labels: Sequence[str],
+    out_png: str,
+    smooth_s: float = 60.0,
+) -> None:
     """Smoothed violations overlay with semantic labels."""
     plt.figure(figsize=(9, 3.5))
     palette = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728"]
+
     def pretty(lbl: str) -> str:
         l = lbl
-        if "sim_024" in l: return "Under‑provisioned (N=11)"
-        if "sim_020" in l: return "Baseline (N=21)"
-        if "sim_025" in l: return "Over‑provisioned (N=31)"
-        if "sim_026" in l: return "Baseline long‑run (N=21, 9600s)"
+        if "sim_024" in l:
+            return "Under‑provisioned (N=11)"
+        if "sim_020" in l:
+            return "Baseline (N=21)"
+        if "sim_025" in l:
+            return "Over‑provisioned (N=31)"
+        if "sim_026" in l:
+            return "Baseline long‑run (N=21, 9600s)"
         return l
+
     for idx, (m, label) in enumerate(zip(metrics_list, labels)):
         t, viol = m.get("time"), m.get("cells_overdue")
         if t is None or viol is None:
             continue
         viol_sm = _rolling_mean(viol, t, smooth_s)
-        plt.plot(t, viol_sm, lw=2.0, label=pretty(label), color=palette[idx % len(palette)])
+        plt.plot(
+            t, viol_sm, lw=2.0, label=pretty(label), color=palette[idx % len(palette)]
+        )
     plt.xlabel("Time (s)")
     plt.ylabel("# cells > Θ")
-    plt.title(f"Revisit-gap violations – smoothed comparison ({int(smooth_s)} s rolling)")
+    plt.title(
+        f"Revisit-gap violations – smoothed comparison ({int(smooth_s)} s rolling)"
+    )
     plt.legend(loc="upper right")
     plt.grid(True, alpha=0.3)
     _ensure_dir(os.path.dirname(out_png))
     plt.tight_layout()
     plt.savefig(out_png, dpi=180)
     plt.close()
-def plot_compare_violations(metrics_list: Sequence[Dict[str, np.ndarray]],
-                            labels: Sequence[str], out_png: str) -> None:
+
+
+def plot_compare_violations(
+    metrics_list: Sequence[Dict[str, np.ndarray]], labels: Sequence[str], out_png: str
+) -> None:
     plt.figure(figsize=(9, 3.5))
+
     def pretty(lbl: str) -> str:
         l = lbl
-        if "sim_024" in l: return "Under‑provisioned (N=11)"
-        if "sim_020" in l: return "Baseline (N=21)"
-        if "sim_025" in l: return "Over‑provisioned (N=31)"
-        if "sim_026" in l: return "Baseline long‑run (N=21, 9600s)"
+        if "sim_024" in l:
+            return "Under‑provisioned (N=11)"
+        if "sim_020" in l:
+            return "Baseline (N=21)"
+        if "sim_025" in l:
+            return "Over‑provisioned (N=31)"
+        if "sim_026" in l:
+            return "Baseline long‑run (N=21, 9600s)"
         return l
+
     for m, label in zip(metrics_list, labels):
         t, viol = m.get("time"), m.get("cells_overdue")
         if t is None or viol is None:
@@ -393,7 +447,15 @@ def plot_comparison_table(arts: Sequence[RunArtifacts], out_png: str) -> None:
     for a, m, label in zip(arts, metrics_list, labels):
         s = summarize_metrics(m)
         overdue = _count_overdue_in_snapshot(a.final_coverage)
-        rows.append([label, f"{s['avg']:.1f}%", f"{s['peak']:.1f}%", f"{s['time_ge_90']:.0f}s", "" if overdue is None else str(overdue)])
+        rows.append(
+            [
+                label,
+                f"{s['avg']:.1f}%",
+                f"{s['peak']:.1f}%",
+                f"{s['time_ge_90']:.0f}s",
+                "" if overdue is None else str(overdue),
+            ]
+        )
 
     fig, ax = plt.subplots(figsize=(8, 1 + 0.4 * len(rows)))
     ax.axis("off")
@@ -416,14 +478,22 @@ def plot_fleet_state(metrics: Dict[str, np.ndarray], out_png: str) -> None:
     if t is None or active is None or swap is None or spare is None:
         return
     plt.figure(figsize=(9, 3.8))
-    plt.stackplot(t, active, swap, spare, labels=["On mission", "Swapping", "Spares"],
-                  colors=["#2a9d8f", "#e9c46a", "#264653"], alpha=0.9)
+    plt.stackplot(
+        t,
+        active,
+        swap,
+        spare,
+        labels=["On mission", "Swapping", "Spares"],
+        colors=["#2a9d8f", "#e9c46a", "#264653"],
+        alpha=0.9,
+    )
     plt.xlabel("Time (s)")
     plt.ylabel("UAV count")
     plt.title("Fleet state over time")
     plt.legend(loc="upper right")
     try:
         from matplotlib.ticker import MaxNLocator
+
         ax = plt.gca()
         ax.yaxis.set_major_locator(MaxNLocator(integer=True))
     except Exception:
@@ -448,15 +518,19 @@ def _read_uav_routes_csv(path: str) -> Tuple[float, List[Tuple[str, str]]]:
         df.columns = cols
         # Expect first column to be time, and columns 'uav_id','state'
         try:
-            tval = float(df.iloc[0, 0]) if len(df) else float('nan')
+            tval = float(df.iloc[0, 0]) if len(df) else float("nan")
         except Exception:
-            tval = float('nan')
-        pairs = [(str(r["uav_id"]).strip(), str(r["state"]).strip().lower()) for _, r in df.iterrows()]
+            tval = float("nan")
+        pairs = [
+            (str(r["uav_id"]).strip(), str(r["state"]).strip().lower())
+            for _, r in df.iterrows()
+        ]
         return tval, pairs
 
     # Fallback to csv module
     import csv as _csv
-    tval = float('nan')
+
+    tval = float("nan")
     pairs: List[Tuple[str, str]] = []
     with open(path, newline="") as f:
         rdr = _csv.DictReader(f)
@@ -465,7 +539,7 @@ def _read_uav_routes_csv(path: str) -> Tuple[float, List[Tuple[str, str]]]:
                 try:
                     tval = float(row.get("time", "nan"))
                 except Exception:
-                    tval = float('nan')
+                    tval = float("nan")
             uid = str(row.get("uav_id", "")).strip()
             st = str(row.get("state", "")).strip().lower()
             pairs.append((uid, st))
@@ -506,7 +580,10 @@ def plot_fleet_state_with_contingency(
     """
     import glob as _glob
 
-    t = metrics.get("time"); act = metrics.get("active_uavs"); swp = metrics.get("swapping_uavs"); spr = metrics.get("spare_uavs")
+    t = metrics.get("time")
+    act = metrics.get("active_uavs")
+    swp = metrics.get("swapping_uavs")
+    spr = metrics.get("spare_uavs")
     if t is None or act is None or swp is None or spr is None:
         return
 
@@ -562,11 +639,19 @@ def plot_fleet_state_with_contingency(
     # Plot with distinct band for contingency
     plt.figure(figsize=(10, 4.0))
     ax = plt.gca()
-    ax.stackplot(t, act, swp, rot_spares, c_series,
-                 labels=["On mission", "Swapping", "Rotation spares", "Contingency"],
-                 colors=["#2a9d8f", "#e9c46a", "#264653", "#7b1fa2"], alpha=0.9, step="post")
+    ax.stackplot(
+        t,
+        act,
+        swp,
+        rot_spares,
+        c_series,
+        labels=["On mission", "Swapping", "Rotation spares", "Contingency"],
+        colors=["#2a9d8f", "#e9c46a", "#264653", "#7b1fa2"],
+        alpha=0.9,
+        step="post",
+    )
     # Overlay deployed (active+swapping)
-    dep = (act + swp)
+    dep = act + swp
     ax.plot(t, dep, color="#455a64", ls="--", lw=1.1, label="Deployed (active+swap)")
 
     if annotate_fail:
@@ -576,7 +661,12 @@ def plot_fleet_state_with_contingency(
             ax.axvline(t_fail, color="#c23b22", ls="--", lw=1.0)
         if t_rec is not None and not np.isnan(t_rec):
             ax.axvline(t_rec, color="#6a1b9a", ls="--", lw=1.0)
-        if t_fail is not None and t_rec is not None and not np.isnan(t_fail) and not np.isnan(t_rec):
+        if (
+            t_fail is not None
+            and t_rec is not None
+            and not np.isnan(t_fail)
+            and not np.isnan(t_rec)
+        ):
             ax.axvspan(t_fail, t_rec, color="#ef9a9a", alpha=0.18)
 
     ax.set_xlabel("Time (s)")
@@ -584,6 +674,7 @@ def plot_fleet_state_with_contingency(
     ax.set_title("Fleet state over time (with contingency)")
     try:
         from matplotlib.ticker import MaxNLocator
+
         ax.yaxis.set_major_locator(MaxNLocator(integer=True))
     except Exception:
         pass
@@ -595,11 +686,15 @@ def plot_fleet_state_with_contingency(
     plt.close()
 
 
-def plot_coverage_time_with_band(metrics: Dict[str, np.ndarray], out_png: str,
-                                 steady_start_s: float = 600.0,
-                                 q_lo: float = 10.0, q_hi: float = 90.0,
-                                 y_tick_step: int = 5,
-                                 show_global_avg: bool = True) -> None:
+def plot_coverage_time_with_band(
+    metrics: Dict[str, np.ndarray],
+    out_png: str,
+    steady_start_s: float = 600.0,
+    q_lo: float = 10.0,
+    q_hi: float = 90.0,
+    y_tick_step: int = 5,
+    show_global_avg: bool = True,
+) -> None:
     """Coverage with a horizontal steady-state band (P10–P90 after warmup)."""
     t = metrics.get("time")
     cov = metrics.get("coverage_%")
@@ -608,19 +703,25 @@ def plot_coverage_time_with_band(metrics: Dict[str, np.ndarray], out_png: str,
         return
     plt.figure(figsize=(9, 4))
     # Compute band from steady segment
-    mask = (t >= steady_start_s)
+    mask = t >= steady_start_s
     if np.any(mask):
         lo = float(np.nanpercentile(cov[mask], q_lo))
         hi = float(np.nanpercentile(cov[mask], q_hi))
-        plt.axhspan(lo, hi, color="#90caf9", alpha=0.18,
-                    label=f"Steady-state band (P{int(q_lo)}–P{int(q_hi)})")
+        plt.axhspan(
+            lo,
+            hi,
+            color="#90caf9",
+            alpha=0.18,
+            label=f"Steady-state band (P{int(q_lo)}–P{int(q_hi)})",
+        )
         plt.axvspan(steady_start_s, t[-1], color="#bdbdbd", alpha=0.08)
     # Curves
     plt.plot(t, cov, label="Coverage %", lw=1.2, color="#1976d2", alpha=0.8)
     if roll is not None and not np.all(np.isnan(roll)):
         plt.plot(t, roll, label="Rolling avg % (240s)", lw=1.8, color="#ef6c00")
     if show_global_avg:
-        dt = np.diff(t, prepend=t[0]); dt[0] = max(dt[0], 1e-6)
+        dt = np.diff(t, prepend=t[0])
+        dt[0] = max(dt[0], 1e-6)
         glob = np.cumsum(cov * dt) / np.cumsum(dt)
         plt.plot(t, glob, label="Global avg % (t0→t)", lw=1.2, ls="--", color="#2e7d32")
     plt.ylim(0, 100)
@@ -636,7 +737,9 @@ def plot_coverage_time_with_band(metrics: Dict[str, np.ndarray], out_png: str,
     plt.close()
 
 
-def _estimate_recovery_time(metrics: Dict[str, np.ndarray], t_fail: float, threshold: float = 90.0) -> float:
+def _estimate_recovery_time(
+    metrics: Dict[str, np.ndarray], t_fail: float, threshold: float = 90.0
+) -> float:
     """Return time-to-recover (seconds) when rolling avg ≥ threshold after failure.
     Returns NaN if not reached.
     """
@@ -651,10 +754,16 @@ def _estimate_recovery_time(metrics: Dict[str, np.ndarray], t_fail: float, thres
     return float("nan")
 
 
-def plot_failure_recovery(metrics: Dict[str, np.ndarray], out_png: str,
-                          t_fail: float, t_rec90: Optional[float] = None,
-                          y_tick_step: int = 5) -> None:
-    t = metrics.get("time"); cov = metrics.get("coverage_%"); roll = metrics.get("rolling_avg_%")
+def plot_failure_recovery(
+    metrics: Dict[str, np.ndarray],
+    out_png: str,
+    t_fail: float,
+    t_rec90: Optional[float] = None,
+    y_tick_step: int = 5,
+) -> None:
+    t = metrics.get("time")
+    cov = metrics.get("coverage_%")
+    roll = metrics.get("rolling_avg_%")
     if t is None or cov is None:
         return
     if t_rec90 is None or np.isnan(t_rec90):
@@ -667,7 +776,9 @@ def plot_failure_recovery(metrics: Dict[str, np.ndarray], out_png: str,
         plt.plot(t, roll, label="Rolling avg % (240s)", lw=1.8, color="#ef6c00")
     # Shade failure window
     if t_rec is not None:
-        plt.axvspan(t_fail, t_rec, color="#ef9a9a", alpha=0.25, label="Failure→Recovery ≥90%")
+        plt.axvspan(
+            t_fail, t_rec, color="#ef9a9a", alpha=0.25, label="Failure→Recovery ≥90%"
+        )
     # Vertical markers
     plt.axvline(t_fail, color="#c23b22", ls="--", lw=1.2)
     if t_rec is not None:
@@ -675,12 +786,24 @@ def plot_failure_recovery(metrics: Dict[str, np.ndarray], out_png: str,
     # Annotate min coverage in the window
     try:
         j0 = int(np.searchsorted(t, t_fail))
-        j1 = int(np.searchsorted(t, t_rec)) if t_rec is not None else min(len(t)-1, j0 + 1200)
+        j1 = (
+            int(np.searchsorted(t, t_rec))
+            if t_rec is not None
+            else min(len(t) - 1, j0 + 1200)
+        )
         seg = cov[j0:j1]
         if seg.size > 0:
             k = int(np.nanargmin(seg)) + j0
             plt.scatter([t[k]], [cov[k]], color="#c62828", zorder=5)
-            plt.text(t[k], cov[k]-4, f"min {cov[k]:.1f}%", ha="center", va="top", fontsize=8, color="#c62828")
+            plt.text(
+                t[k],
+                cov[k] - 4,
+                f"min {cov[k]:.1f}%",
+                ha="center",
+                va="top",
+                fontsize=8,
+                color="#c62828",
+            )
     except Exception:
         pass
     plt.ylim(0, 100)
@@ -697,11 +820,18 @@ def plot_failure_recovery(metrics: Dict[str, np.ndarray], out_png: str,
     plt.close()
 
 
-def plot_failure_zoom(metrics: Dict[str, np.ndarray], out_png: str,
-                      t_fail: float, t_rec90: Optional[float] = None,
-                      left_pad: float = 300.0, right_pad: float = 300.0,
-                      y_margin: float = 5.0) -> None:
-    t = metrics.get("time"); cov = metrics.get("coverage_%"); roll = metrics.get("rolling_avg_%")
+def plot_failure_zoom(
+    metrics: Dict[str, np.ndarray],
+    out_png: str,
+    t_fail: float,
+    t_rec90: Optional[float] = None,
+    left_pad: float = 300.0,
+    right_pad: float = 300.0,
+    y_margin: float = 5.0,
+) -> None:
+    t = metrics.get("time")
+    cov = metrics.get("coverage_%")
+    roll = metrics.get("rolling_avg_%")
     if t is None or cov is None:
         return
     if t_rec90 is None or np.isnan(t_rec90):
@@ -717,8 +847,12 @@ def plot_failure_zoom(metrics: Dict[str, np.ndarray], out_png: str,
     plt.figure(figsize=(10, 4))
     plt.plot(t[mask], cov[mask], label="Coverage %", lw=1.2, color="#1976d2")
     if roll is not None and not np.all(np.isnan(roll)):
-        plt.plot(t[mask], roll[mask], label="Rolling avg % (240s)", lw=1.8, color="#ef6c00")
-    plt.axvspan(t_fail, t_rec, color="#ef9a9a", alpha=0.25, label="Failure→Recovery ≥90%")
+        plt.plot(
+            t[mask], roll[mask], label="Rolling avg % (240s)", lw=1.8, color="#ef6c00"
+        )
+    plt.axvspan(
+        t_fail, t_rec, color="#ef9a9a", alpha=0.25, label="Failure→Recovery ≥90%"
+    )
     plt.axvline(t_fail, color="#c23b22", ls="--", lw=1.2)
     plt.axvline(t_rec, color="#6a1b9a", ls="--", lw=1.2)
     plt.xlim(t0, t1)
@@ -734,10 +868,16 @@ def plot_failure_zoom(metrics: Dict[str, np.ndarray], out_png: str,
     plt.close()
 
 
-def _detect_reentry_post_fail(metrics: Dict[str, np.ndarray], t_fail: float,
-                              window_s: float = 600.0, range_pct: float = 3.0) -> Optional[float]:
+def _detect_reentry_post_fail(
+    metrics: Dict[str, np.ndarray],
+    t_fail: float,
+    window_s: float = 600.0,
+    range_pct: float = 3.0,
+) -> Optional[float]:
     """Earliest time ≥ t_fail where rolling-average range over next window ≤ range_pct."""
-    t = metrics.get("time"); roll = metrics.get("rolling_avg_%"); cov = metrics.get("coverage_%")
+    t = metrics.get("time")
+    roll = metrics.get("rolling_avg_%")
+    cov = metrics.get("coverage_%")
     if t is None or (roll is None and cov is None):
         return None
     if roll is None or np.all(np.isnan(roll)):
@@ -746,7 +886,7 @@ def _detect_reentry_post_fail(metrics: Dict[str, np.ndarray], t_fail: float,
     win = max(1, int(round(window_s / max(dt, 1e-6))))
     start_idx = int(np.searchsorted(t, t_fail))
     for i in range(start_idx, max(start_idx, len(t) - win)):
-        seg = roll[i:i+win]
+        seg = roll[i : i + win]
         if seg.size == 0:
             break
         r = float(np.nanmax(seg) - np.nanmin(seg))
@@ -755,18 +895,37 @@ def _detect_reentry_post_fail(metrics: Dict[str, np.ndarray], t_fail: float,
     return None
 
 
-def plot_failure_tripanel(metrics: Dict[str, np.ndarray], out_png: str,
-                          t_fail: float, theta: float = 180.0,
-                          window_s: float = 600.0, range_pct: float = 3.0) -> None:
+def plot_failure_tripanel(
+    metrics: Dict[str, np.ndarray],
+    out_png: str,
+    t_fail: float,
+    theta: float = 180.0,
+    window_s: float = 600.0,
+    range_pct: float = 3.0,
+) -> None:
     """Three stacked panels: coverage, overdue, fleet state; shaded fail→reentry."""
     import matplotlib.pyplot as _plt
-    t = metrics.get("time"); cov = metrics.get("coverage_%"); roll = metrics.get("rolling_avg_%")
+
+    t = metrics.get("time")
+    cov = metrics.get("coverage_%")
+    roll = metrics.get("rolling_avg_%")
     overdue = metrics.get("cells_overdue")
-    act = metrics.get("active_uavs"); swp = metrics.get("swapping_uavs"); spr = metrics.get("spare_uavs")
-    if t is None or cov is None or overdue is None or act is None or swp is None or spr is None:
+    act = metrics.get("active_uavs")
+    swp = metrics.get("swapping_uavs")
+    spr = metrics.get("spare_uavs")
+    if (
+        t is None
+        or cov is None
+        or overdue is None
+        or act is None
+        or swp is None
+        or spr is None
+    ):
         return
     t_rec90 = _estimate_recovery_time(metrics, t_fail)
-    t_reentry = _detect_reentry_post_fail(metrics, t_fail, window_s=window_s, range_pct=range_pct)
+    t_reentry = _detect_reentry_post_fail(
+        metrics, t_fail, window_s=window_s, range_pct=range_pct
+    )
     t_rec = t_fail + t_rec90 if not np.isnan(t_rec90) else None
 
     fig, axs = _plt.subplots(3, 1, figsize=(10, 7.5), sharex=True)
@@ -784,12 +943,24 @@ def plot_failure_tripanel(metrics: Dict[str, np.ndarray], out_png: str,
     # Min coverage annotation in [t_fail, t_rec or t_fail+900]
     try:
         j0 = int(np.searchsorted(t, t_fail))
-        j1 = int(np.searchsorted(t, t_rec)) if t_rec is not None else min(len(t)-1, j0 + int(window_s*2))
+        j1 = (
+            int(np.searchsorted(t, t_rec))
+            if t_rec is not None
+            else min(len(t) - 1, j0 + int(window_s * 2))
+        )
         seg = cov[j0:j1]
         if seg.size > 0:
             k = int(np.nanargmin(seg)) + j0
             axs[0].scatter([t[k]], [cov[k]], color="#c62828", zorder=5)
-            axs[0].text(t[k], cov[k]-4, f"min {cov[k]:.1f}%", ha="center", va="top", fontsize=8, color="#c62828")
+            axs[0].text(
+                t[k],
+                cov[k] - 4,
+                f"min {cov[k]:.1f}%",
+                ha="center",
+                va="top",
+                fontsize=8,
+                color="#c62828",
+            )
     except Exception:
         pass
     axs[0].set_ylabel("Coverage (%)")
@@ -807,7 +978,15 @@ def plot_failure_tripanel(metrics: Dict[str, np.ndarray], out_png: str,
     try:
         k = int(np.nanargmax(overdue))
         axs[1].scatter([t[k]], [overdue[k]], color="#b71c1c", zorder=5)
-        axs[1].text(t[k], overdue[k], f"peak {int(overdue[k])}", ha="center", va="bottom", fontsize=8, color="#b71c1c")
+        axs[1].text(
+            t[k],
+            overdue[k],
+            f"peak {int(overdue[k])}",
+            ha="center",
+            va="bottom",
+            fontsize=8,
+            color="#b71c1c",
+        )
     except Exception:
         pass
     axs[1].set_ylabel("# cells > Θ")
@@ -815,8 +994,15 @@ def plot_failure_tripanel(metrics: Dict[str, np.ndarray], out_png: str,
     axs[1].grid(True, alpha=0.3)
 
     # Panel 3: fleet state
-    axs[2].stackplot(t, act, swp, spr, labels=["On mission", "Swapping", "Spares"],
-                     colors=["#2a9d8f", "#e9c46a", "#264653"], alpha=0.9)
+    axs[2].stackplot(
+        t,
+        act,
+        swp,
+        spr,
+        labels=["On mission", "Swapping", "Spares"],
+        colors=["#2a9d8f", "#e9c46a", "#264653"],
+        alpha=0.9,
+    )
     if t_reentry is not None:
         axs[2].axvspan(t_fail, t_reentry, color="#ef9a9a", alpha=0.18)
     axs[2].axvline(t_fail, color="#c23b22", ls="--", lw=1.0)
@@ -833,7 +1019,10 @@ def plot_failure_tripanel(metrics: Dict[str, np.ndarray], out_png: str,
     fig.savefig(out_png, dpi=180)
     _plt.close(fig)
 
-def plot_cost_index(metrics: Dict[str, np.ndarray], out_png: str, rate_per_hour: float = 1.0) -> None:
+
+def plot_cost_index(
+    metrics: Dict[str, np.ndarray], out_png: str, rate_per_hour: float = 1.0
+) -> None:
     """Plot a simple operating cost index: cumulative UAV-hours × rate.
 
     If an absolute rate is not relevant, keep `rate_per_hour=1.0` to produce
@@ -861,9 +1050,13 @@ def plot_cost_index(metrics: Dict[str, np.ndarray], out_png: str, rate_per_hour:
     plt.close()
 
 
-def plot_soc_series(times: np.ndarray, series: Dict[str, np.ndarray], out_png: str,
-                    highlight: Optional[Sequence[str]] = None,
-                    soc_floor: Optional[float] = None) -> None:
+def plot_soc_series(
+    times: np.ndarray,
+    series: Dict[str, np.ndarray],
+    out_png: str,
+    highlight: Optional[Sequence[str]] = None,
+    soc_floor: Optional[float] = None,
+) -> None:
     plt.figure(figsize=(9, 3.5))
     # Choose a small subset if many columns
     keys = list(series.keys())
@@ -874,7 +1067,9 @@ def plot_soc_series(times: np.ndarray, series: Dict[str, np.ndarray], out_png: s
     for uid in keys:
         plt.plot(times, series[uid], label=f"UAV {uid}")
     if soc_floor is not None:
-        plt.axhline(soc_floor * 100.0, color="#c23b22", ls="--", lw=1.2, label="SoC floor")
+        plt.axhline(
+            soc_floor * 100.0, color="#c23b22", ls="--", lw=1.2, label="SoC floor"
+        )
     plt.xlabel("Time (s)")
     plt.ylabel("SoC (%)")
     plt.title("SoC traces (selected UAVs)")
@@ -886,14 +1081,24 @@ def plot_soc_series(times: np.ndarray, series: Dict[str, np.ndarray], out_png: s
     plt.close()
 
 
-def plot_revisit_hist(snapshot_path: str, out_png: str, theta: float = 180.0,
-                      snapshot_time: Optional[float] = None) -> None:
+def plot_revisit_hist(
+    snapshot_path: str,
+    out_png: str,
+    theta: float = 180.0,
+    snapshot_time: Optional[float] = None,
+) -> None:
     data = read_coverage_snapshot(snapshot_path)
     ages = data["age"]
     plt.figure(figsize=(8, 3.2))
     bins = np.linspace(0, max(theta * 2, np.nanmax(ages) + 1), 30)
     plt.hist(ages, bins=bins, color="#457b9d", alpha=0.85)
-    plt.axvline(theta, color="#c23b22", ls="--", lw=1.2, label=f"Theta (max revisit) = {theta:.0f}s")
+    plt.axvline(
+        theta,
+        color="#c23b22",
+        ls="--",
+        lw=1.2,
+        label=f"Theta (max revisit) = {theta:.0f}s",
+    )
     plt.xlabel("Cell age (s)")
     plt.ylabel("# cells")
     title = "Revisit-age distribution (snapshot)"
@@ -936,7 +1141,13 @@ def plot_revisit_percentiles(
     plt.plot(times, p90, label="P90 age", lw=1.6)
     plt.plot(times, p99, label="P99 age", lw=1.6)
     plt.plot(times, p100, label="Max age", lw=1.6)
-    plt.axhline(theta, color="#c23b22", ls="--", lw=1.2, label=f"Theta (max revisit) = {theta:.0f}s")
+    plt.axhline(
+        theta,
+        color="#c23b22",
+        ls="--",
+        lw=1.2,
+        label=f"Theta (max revisit) = {theta:.0f}s",
+    )
     plt.xlabel("Time (s)")
     plt.ylabel("Cell age (s)")
     plt.title("Revisit age percentiles over time (snapshot-based)")
@@ -1032,10 +1243,15 @@ def _load_snapshot_overdue(paths: Sequence[str]) -> Optional[np.ndarray]:
         return None
 
 
-def plot_orphan_percentiles(snapshot_paths: Sequence[str], out_png: str,
-                             t_fail: float, snapshot_period_s: float = 600.0,
-                             top_k: int = 100, theta: float = 180.0,
-                             epsilon: float = 60.0) -> None:
+def plot_orphan_percentiles(
+    snapshot_paths: Sequence[str],
+    out_png: str,
+    t_fail: float,
+    snapshot_period_s: float = 600.0,
+    top_k: int = 100,
+    theta: float = 180.0,
+    epsilon: float = 60.0,
+) -> None:
     """Approximate orphan set: cells whose age jump is largest immediately after failure.
     Plot their age percentiles over subsequent snapshots, with Θ and Θ+ε.
     """
@@ -1046,7 +1262,9 @@ def plot_orphan_percentiles(snapshot_paths: Sequence[str], out_png: str,
         return
     S, C = ages.shape
     # Determine snapshot index right before and after failure
-    idx_fail = int(np.floor(t_fail / snapshot_period_s))  # 0-based; snapshot i ~ (i+1)*period
+    idx_fail = int(
+        np.floor(t_fail / snapshot_period_s)
+    )  # 0-based; snapshot i ~ (i+1)*period
     # Map our snapshot timing convention
     after_idx = min(max(1, idx_fail), S - 1)
     before_idx = max(0, after_idx - 1)
@@ -1067,7 +1285,9 @@ def plot_orphan_percentiles(snapshot_paths: Sequence[str], out_png: str,
     plt.plot(times, p90, label="Orphan P90", lw=1.6)
     plt.plot(times, p99, label="Orphan P99", lw=1.6)
     plt.axhline(theta, color="#c23b22", ls="--", lw=1.2, label=f"Θ = {theta:.0f}s")
-    plt.axhline(theta + epsilon, color="#8e24aa", ls=":", lw=1.4, label=f"Θ+ε ({int(epsilon)}s)")
+    plt.axhline(
+        theta + epsilon, color="#8e24aa", ls=":", lw=1.4, label=f"Θ+ε ({int(epsilon)}s)"
+    )
     plt.xlabel("Time (s)")
     plt.ylabel("Age (s)")
     plt.title("Orphan-cell age percentiles after failure (approx.)")
@@ -1079,9 +1299,15 @@ def plot_orphan_percentiles(snapshot_paths: Sequence[str], out_png: str,
     plt.close()
 
 
-def plot_orphan_coverage(snapshot_paths: Sequence[str], out_cov_png: str, out_vio_png: str,
-                          t_fail: float, snapshot_period_s: float = 600.0,
-                          top_k: int = 100, theta: float = 180.0) -> None:
+def plot_orphan_coverage(
+    snapshot_paths: Sequence[str],
+    out_cov_png: str,
+    out_vio_png: str,
+    t_fail: float,
+    snapshot_period_s: float = 600.0,
+    top_k: int = 100,
+    theta: float = 180.0,
+) -> None:
     """Coverage% and overdue count over time for approximate orphan set (top-K age jump)."""
     ages = _load_snapshot_ages(snapshot_paths)
     overdue = _load_snapshot_overdue(snapshot_paths)
@@ -1152,10 +1378,12 @@ def load_recovery_annotations(rec_path: Optional[str]) -> Dict[str, float]:
     return ann
 
 
-def _detect_steady_start(metrics: Dict[str, np.ndarray],
-                         warmup_s: float = 600.0,
-                         window_s: float = 600.0,
-                         range_pct: float = 3.0) -> float:
+def _detect_steady_start(
+    metrics: Dict[str, np.ndarray],
+    warmup_s: float = 600.0,
+    window_s: float = 600.0,
+    range_pct: float = 3.0,
+) -> float:
     """Heuristic: earliest t ≥ warmup_s where range(rolling_avg) ≤ range_pct
     over a window of length window_s. Falls back to warmup_s if not found.
     """
@@ -1170,7 +1398,7 @@ def _detect_steady_start(metrics: Dict[str, np.ndarray],
     win = max(1, int(round(window_s / max(dt, 1e-6))))
     start_idx = np.searchsorted(t, warmup_s)
     for i in range(start_idx, max(start_idx, len(t) - win)):
-        seg = roll[i:i+win]
+        seg = roll[i : i + win]
         if seg.size == 0:
             break
         r = float(np.nanmax(seg) - np.nanmin(seg))
@@ -1210,9 +1438,12 @@ def generate_figures_for_run(
     steady_start = 600.0
     if band_start:
         if band_start.strip().lower() == "auto":
-            steady_start = _detect_steady_start(metrics, warmup_s=600.0,
-                                                window_s=band_window_s,
-                                                range_pct=band_range_pct)
+            steady_start = _detect_steady_start(
+                metrics,
+                warmup_s=600.0,
+                window_s=band_window_s,
+                range_pct=band_range_pct,
+            )
         else:
             try:
                 steady_start = float(band_start)
@@ -1258,7 +1489,9 @@ def generate_figures_for_run(
 
         # Also create percentile evolution plot across all snapshots
         p = os.path.join(figs_dir, f"{tag}_revisit_percentiles.png")
-        plot_revisit_percentiles(art.coverage_snaps, p, theta=theta, snapshot_period_s=snapshot_period_s)
+        plot_revisit_percentiles(
+            art.coverage_snaps, p, theta=theta, snapshot_period_s=snapshot_period_s
+        )
         out_paths.append(p)
     elif art.final_coverage:
         p = os.path.join(figs_dir, f"{tag}_revisit_hist.png")
@@ -1271,27 +1504,78 @@ def generate_figures_for_run(
 def main():
     import argparse
 
-    parser = argparse.ArgumentParser(description="Generate Stage-6 figures from simulation CSVs")
-    parser.add_argument("--steady-tag", type=str, default="sim_020_roundrobin_",
-                        help="Partial tag to find steady-state run (prefix of filenames)")
-    parser.add_argument("--failure-tag", type=str, default="sim_023_roundrobin_FAIL",
-                        help="Partial tag to find failure run (prefix of filenames)")
+    parser = argparse.ArgumentParser(
+        description="Generate Stage-6 figures from simulation CSVs"
+    )
+    parser.add_argument(
+        "--steady-tag",
+        type=str,
+        default="sim_020_roundrobin_",
+        help="Partial tag to find steady-state run (prefix of filenames)",
+    )
+    parser.add_argument(
+        "--failure-tag",
+        type=str,
+        default="sim_023_roundrobin_FAIL",
+        help="Partial tag to find failure run (prefix of filenames)",
+    )
     parser.add_argument("--theta", type=float, default=180.0, help="Revisit gap Θ")
-    parser.add_argument("--soc-floor", type=float, default=0.10, help="SoC floor fraction")
-    parser.add_argument("--cost-rate", type=float, default=1.0, help="Operating cost rate per UAV-hour for cost index")
-    parser.add_argument("--gap-snapshot-period", type=float, default=600.0, help="Assumed period between coverage_gaps snapshots (s)")
-    parser.add_argument("--suffix", type=str, default="", help="Suffix to append to output filenames to avoid overwrites (e.g., v2)")
+    parser.add_argument(
+        "--soc-floor", type=float, default=0.10, help="SoC floor fraction"
+    )
+    parser.add_argument(
+        "--cost-rate",
+        type=float,
+        default=1.0,
+        help="Operating cost rate per UAV-hour for cost index",
+    )
+    parser.add_argument(
+        "--gap-snapshot-period",
+        type=float,
+        default=600.0,
+        help="Assumed period between coverage_gaps snapshots (s)",
+    )
+    parser.add_argument(
+        "--suffix",
+        type=str,
+        default="",
+        help="Suffix to append to output filenames to avoid overwrites (e.g., v2)",
+    )
     # Steady-state band controls
-    parser.add_argument("--band-start", type=str, default="auto",
-                        help="Steady band start: seconds or 'auto' (default)")
-    parser.add_argument("--band-window", type=float, default=600.0,
-                        help="Window (s) for auto band detection")
-    parser.add_argument("--band-range", type=float, default=3.0,
-                        help="Max rolling-average range (%) to declare steady in window")
-    parser.add_argument("--compare-tags", type=str, default="",
-                        help="Semicolon-separated list of run tags to compare (coverage & violations overlays)")
-    parser.add_argument("--make-table", action="store_true", help="Export comparison table PNG when --compare-tags is given")
-    parser.add_argument("--make-composites", action="store_true", help="Export composite page per compared run")
+    parser.add_argument(
+        "--band-start",
+        type=str,
+        default="auto",
+        help="Steady band start: seconds or 'auto' (default)",
+    )
+    parser.add_argument(
+        "--band-window",
+        type=float,
+        default=600.0,
+        help="Window (s) for auto band detection",
+    )
+    parser.add_argument(
+        "--band-range",
+        type=float,
+        default=3.0,
+        help="Max rolling-average range (%) to declare steady in window",
+    )
+    parser.add_argument(
+        "--compare-tags",
+        type=str,
+        default="",
+        help="Semicolon-separated list of run tags to compare (coverage & violations overlays)",
+    )
+    parser.add_argument(
+        "--make-table",
+        action="store_true",
+        help="Export comparison table PNG when --compare-tags is given",
+    )
+    parser.add_argument(
+        "--make-composites",
+        action="store_true",
+        help="Export composite page per compared run",
+    )
     args = parser.parse_args()
 
     steady = find_run_artifacts(args.steady_tag)
@@ -1334,27 +1618,66 @@ def main():
         # Also emit dedicated failure transient plots using recovery annotations
         m = read_metrics_csv(failure.metrics)
         ann = load_recovery_annotations(failure.recovery_metrics)
-        t_fail = ann.get("Failure") or _parse_failure_time_from_tag(os.path.basename(failure.base))
+        t_fail = ann.get("Failure") or _parse_failure_time_from_tag(
+            os.path.basename(failure.base)
+        )
         t_rec_line = ann.get("Recovered≥90%")
-        t_rec90 = (t_rec_line - t_fail) if (t_fail is not None and t_rec_line is not None) else None
+        t_rec90 = (
+            (t_rec_line - t_fail)
+            if (t_fail is not None and t_rec_line is not None)
+            else None
+        )
         if t_fail is not None:
-            out_full = os.path.join("figures", os.path.basename(failure.base) + f"_{args.suffix}_fail_recovery.png")
+            out_full = os.path.join(
+                "figures",
+                os.path.basename(failure.base) + f"_{args.suffix}_fail_recovery.png",
+            )
             plot_failure_recovery(m, out_full, t_fail=t_fail, t_rec90=t_rec90)
-            out_zoom = os.path.join("figures", os.path.basename(failure.base) + f"_{args.suffix}_fail_zoom.png")
+            out_zoom = os.path.join(
+                "figures",
+                os.path.basename(failure.base) + f"_{args.suffix}_fail_zoom.png",
+            )
             plot_failure_zoom(m, out_zoom, t_fail=t_fail, t_rec90=t_rec90)
-            out_tri = os.path.join("figures", os.path.basename(failure.base) + f"_{args.suffix}_fail_timeline.png")
+            out_tri = os.path.join(
+                "figures",
+                os.path.basename(failure.base) + f"_{args.suffix}_fail_timeline.png",
+            )
             plot_failure_tripanel(m, out_tri, t_fail=t_fail, theta=args.theta)
             # Orphan-percentile plot (Θ+ε visualization)
             if failure.coverage_snaps:
-                orphan_out = os.path.join("figures", os.path.basename(failure.base) + f"_{args.suffix}_orphan_percentiles.png")
-                plot_orphan_percentiles(failure.coverage_snaps, orphan_out, t_fail=t_fail,
-                                        snapshot_period_s=args.gap_snapshot_period,
-                                        top_k=100, theta=args.theta, epsilon=60.0)
-                orphan_cov = os.path.join("figures", os.path.basename(failure.base) + f"_{args.suffix}_orphan_coverage.png")
-                orphan_vio = os.path.join("figures", os.path.basename(failure.base) + f"_{args.suffix}_orphan_overdue.png")
-                plot_orphan_coverage(failure.coverage_snaps, orphan_cov, orphan_vio,
-                                      t_fail=t_fail, snapshot_period_s=args.gap_snapshot_period,
-                                      top_k=100, theta=args.theta)
+                orphan_out = os.path.join(
+                    "figures",
+                    os.path.basename(failure.base)
+                    + f"_{args.suffix}_orphan_percentiles.png",
+                )
+                plot_orphan_percentiles(
+                    failure.coverage_snaps,
+                    orphan_out,
+                    t_fail=t_fail,
+                    snapshot_period_s=args.gap_snapshot_period,
+                    top_k=100,
+                    theta=args.theta,
+                    epsilon=60.0,
+                )
+                orphan_cov = os.path.join(
+                    "figures",
+                    os.path.basename(failure.base)
+                    + f"_{args.suffix}_orphan_coverage.png",
+                )
+                orphan_vio = os.path.join(
+                    "figures",
+                    os.path.basename(failure.base)
+                    + f"_{args.suffix}_orphan_overdue.png",
+                )
+                plot_orphan_coverage(
+                    failure.coverage_snaps,
+                    orphan_cov,
+                    orphan_vio,
+                    t_fail=t_fail,
+                    snapshot_period_s=args.gap_snapshot_period,
+                    top_k=100,
+                    theta=args.theta,
+                )
 
     # Comparison overlays
     if args.compare_tags:
@@ -1367,27 +1690,40 @@ def main():
             metrics_list = [read_metrics_csv(p) for p in metric_paths]
 
             comp_dir = "figures"
-            cov_out = os.path.join(comp_dir, f"compare_coverage_{'_vs_'.join([l.split('_')[1] for l in labels])}.png")
+            cov_out = os.path.join(
+                comp_dir,
+                f"compare_coverage_{'_vs_'.join([l.split('_')[1] for l in labels])}.png",
+            )
             plot_compare_coverage(metrics_list, labels, cov_out, y_tick_step=5)
             # Clean, smoothed variant
             cov_out_clean = cov_out.replace(".png", "_clean.png")
-            plot_compare_coverage_clean(metrics_list, labels, cov_out_clean, smooth_s=60.0, y_tick_step=5)
+            plot_compare_coverage_clean(
+                metrics_list, labels, cov_out_clean, smooth_s=60.0, y_tick_step=5
+            )
 
-            vio_out = os.path.join(comp_dir, f"compare_violations_{'_vs_'.join([l.split('_')[1] for l in labels])}.png")
+            vio_out = os.path.join(
+                comp_dir,
+                f"compare_violations_{'_vs_'.join([l.split('_')[1] for l in labels])}.png",
+            )
             plot_compare_violations(metrics_list, labels, vio_out)
             # Clean, smoothed variant
             vio_out_clean = vio_out.replace(".png", "_clean.png")
-            plot_compare_violations_clean(metrics_list, labels, vio_out_clean, smooth_s=60.0)
+            plot_compare_violations_clean(
+                metrics_list, labels, vio_out_clean, smooth_s=60.0
+            )
 
             # Text summary
-            summary = {lab: summarize_metrics(m) for lab, m in zip(labels, metrics_list)}
+            summary = {
+                lab: summarize_metrics(m) for lab, m in zip(labels, metrics_list)
+            }
             with open(os.path.join(comp_dir, "compare_summary.txt"), "w") as f:
                 for lab, s in summary.items():
-                    f.write(f"{lab}: avg={s['avg']:.1f}%, peak={s['peak']:.1f}%, time>=90%={s['time_ge_90']:.0f}s\n")
+                    f.write(
+                        f"{lab}: avg={s['avg']:.1f}%, peak={s['peak']:.1f}%, time>=90%={s['time_ge_90']:.0f}s\n"
+                    )
 
             if args.make_table:
                 plot_comparison_table(arts, os.path.join(comp_dir, "compare_table.png"))
-
 
     # Write an index JSON for convenience
     with open("figures/index.json", "w", newline="") as f:
@@ -1397,5 +1733,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
