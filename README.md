@@ -1,5 +1,8 @@
 # Persistent UAV Surveillance
 
+[![CI](https://github.com/abhirva/persistent-uav-surveillance/actions/workflows/ci.yml/badge.svg)](https://github.com/abhirva/persistent-uav-surveillance/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 Simulation framework for continuous UAV-swarm surveillance of a rectangular
 area, with battery-aware swap logistics, distance-aware return-to-base, and
 single-failure handling. Built as an MSc thesis at Cranfield University.
@@ -162,6 +165,8 @@ thesis.
 
 Abhirva Navalakhe — MSc Autonomous Vehicle Dynamics & Control, Cranfield
 University, 2024–25.
+
+[LinkedIn](https://www.linkedin.com/in/abhirva/)
 
 ## Acknowledgments
 

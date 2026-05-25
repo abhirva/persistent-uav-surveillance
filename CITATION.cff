@@ -1,0 +1,33 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "Persistent UAV Surveillance: a simulation framework with battery-aware swap logistics"
+authors:
+  - family-names: "Navalakhe"
+    given-names: "Abhirva"
+    affiliation: "Cranfield University"
+version: "1.0.0"
+date-released: "2025-09"
+url: "https://github.com/abhirva/persistent-uav-surveillance"
+repository-code: "https://github.com/abhirva/persistent-uav-surveillance"
+license: MIT
+type: software
+keywords:
+  - "uav"
+  - "swarm-robotics"
+  - "persistent-surveillance"
+  - "path-planning"
+  - "scheduling"
+  - "stl-monitors"
+  - "optimisation"
+  - "simulation"
+preferred-citation:
+  type: conference-paper
+  title: "Optimisation of UAV Swarm Operations for Persistent Surveillance"
+  authors:
+    - family-names: "Navalakhe"
+      given-names: "Abhirva"
+      affiliation: "Cranfield University"
+  conference:
+    name: "International Conference on Recent Innovations and Trends in Aerospace (ICRITA 2025)"
+  year: 2025
+  notes: "Forthcoming in Springer Lecture Notes in Networks and Systems (LNNS). DOI to be added once published."
