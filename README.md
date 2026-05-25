@@ -10,8 +10,9 @@ single-failure handling. Built as an MSc thesis at Cranfield University.
 > cells have been observed more recently; UAVs are coloured by state-of-charge
 > from green to red.
 >
-> **Full-quality run videos** (≈54–108 MB each, sim_020/023/025/026) are
-> attached to the [v1.0 release](../../releases/tag/v1.0).
+> **Full-quality run videos** for all five canonical runs
+> (sim_020/023/024/025/026, ≈52–108 MB each) are attached to the
+> [v1.0 release](../../releases/tag/v1.0).
 
 ## What this is
 
