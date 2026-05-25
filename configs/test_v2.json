@@ -1,0 +1,59 @@
+{
+  "config_name": "test",
+  "description": "Minimal configuration for testing and development",
+  "created_at": "2025-06-26 08:21:33.225439",
+  "version": "1.0",
+  "mission": {
+    "area_width": 100.0,
+    "area_length": 100.0,
+    "depot_x": 0.0,
+    "depot_y": 0.0,
+    "max_ferry_distance": 50.0,
+    "mission_duration": 300.0
+  },
+  "uav": {
+    "cruise_speed": 4.0,
+    "max_speed": 6.0,
+    "flight_altitude": 50.0
+  },
+  "battery": {
+    "total_endurance": 2100.0,
+    "usable_endurance": 1890.0,
+    "soc_floor": 0.1,
+    "soc_return_threshold": 0.2,
+    "hot_swap_time": 60.0,
+    "charging_time": 3600.0
+  },
+  "grid": {
+    "cell_size": 50.0,
+    "coverage_overlap": 0.1,
+    "priority_zones": {},
+    "exclusion_zones": []
+  },
+  "optimization": {
+    "max_battery_reserve": 0.1,
+    "spare_floor_ratio": 0.2,
+    "max_fleet_budget": 1000000.0,
+    "uav_unit_cost": 50000.0,
+    "operating_cost_per_hour": 100.0,
+    "route_optimization_time_limit": 5.0,
+    "alns_iterations": 100,
+    "emergency_replan_time_limit": 5.0
+  },
+  "stl": {
+    "max_revisit_gap": 120.0,
+    "spare_launch_deadline": 1.0,
+    "orphan_recovery_slack": 10.0,
+    "robustness_warning_threshold": 5.0,
+    "robustness_critical_threshold": 1.0
+  },
+  "simulation": {
+    "time_step": 0.5,
+    "gss_frequency": 1.0,
+    "monte_carlo_runs": 10,
+    "random_seed": 42,
+    "failure_rate": 0.001,
+    "weather_enabled": false,
+    "real_time_factor": 10.0
+  }
+}

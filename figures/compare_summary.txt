@@ -1,0 +1,3 @@
+sim_024_roundrobin_20250815_021514: avg=67.6%, peak=85.4%, time>=90%=0s
+sim_020_roundrobin_20250813_021413: avg=85.2%, peak=99.3%, time>=90%=2282s
+sim_025_roundrobin_20250815_032408: avg=88.5%, peak=99.3%, time>=90%=3485s

@@ -1,0 +1,82 @@
+{
+  "config_name": "baseline",
+  "description": "Baseline configuration from thesis reference document",
+  "created_at": "2025-06-26 08:21:33.223956",
+  "version": "1.0",
+  "mission": {
+    "area_width": 500.0,
+    "area_length": 500.0,
+    "depot_x": -500.0,
+    "depot_y": 0.0,
+    "max_ferry_distance": 500.0,
+    "mission_duration": 4800.0
+  },
+  "uav": {
+    "cruise_speed": 6.0,
+    "max_speed": 9.0,
+    "flight_altitude": 50.0
+  },
+  "battery": {
+    "total_endurance": 2100.0,
+    "usable_endurance": 1890.0,
+    "soc_floor": 0.1,
+    "soc_return_threshold": 0.25,
+    "hot_swap_time": 60.0,
+    "charging_time": 3600.0
+  },
+  "grid": {
+    "cell_size": 40.0,
+    "coverage_overlap": 0.1,
+    "origin": [0.0, 0.0],
+    "priority_zones": {},
+    "exclusion_zones": []
+  },
+  "optimization": {
+    "max_battery_reserve": 0.1,
+    "spare_floor_ratio": 0.2,
+    "total_inventory": 21,
+    "max_fleet_budget": 1000000.0,
+    "uav_unit_cost": 50000.0,
+    "operating_cost_per_hour": 100.0,
+    "use_enhanced_fleet": true,
+    "furthest_first": true,
+    "route_algorithm": "roundrobin",
+    "route_optimization_time_limit": 60.0,
+    "alns_iterations": 2000,
+    "batch_size": 4,
+    "batch_period": 150.0,
+    "emergency_replan_time_limit": 5.0
+  },
+  "failure": {
+    "enabled": false,
+    "trigger": { "kind": "time", "uav_id": "03", "t_s": 1800 },
+    "bridge_policy": {
+      "realloc_k": 2,
+      "realloc_horizon_s": 120.0,
+      "realloc_age_guard_s": 60.0,
+      "bridge_tick_s": 30.0,
+      "min_hold_time_s": 60.0,
+      "max_inserts_per_uav": 1,
+      "max_detour_ratio": 0.2,
+      "prelaunch_margin": 0.05,
+      "handover_grace_s": 15.0
+    }
+  },
+  "stl": {
+    "max_revisit_gap": 180.0,
+    "snapshot_period_s": 120.0,
+    "spare_launch_deadline": 1.0,
+    "orphan_recovery_slack": 10.0,
+    "robustness_warning_threshold": 5.0,
+    "robustness_critical_threshold": 1.0
+  },
+  "simulation": {
+    "time_step": 1.0,
+    "gss_frequency": 1.0,
+    "monte_carlo_runs": 1000,
+    "random_seed": 42,
+    "failure_rate": 0.001,
+    "weather_enabled": false,
+    "real_time_factor": 1.0
+  }
+}
