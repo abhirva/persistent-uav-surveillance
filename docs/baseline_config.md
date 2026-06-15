@@ -14,7 +14,8 @@ Key baseline parameters and configuration values used for the thesis runs.
 | **Grid origin**         | (0, 0)              | m             | Bottom-left corner (depot location)              |
 | **Depot to grid dist.** | 0 or 500            | m             | Distance from depot to grid edge                 |
 | **Flight altitude**     | 50                  | m             | UAV cruise altitude (typical)                    |
-| **Cruise speed**        | 4.0                 | m/s           | UAV cruise speed                                |
+| **Cruise speed**        | 6.0                 | m/s           | UAV cruise speed                                |
+| **Max speed**           | 9.0                 | m/s           | UAV maximum velocity                             |
 | **Endurance**           | 2100                | s             | Total battery endurance (35 min)                 |
 | **Usable endurance**    | 1890                | s             | After SoC floor (31.5 min)                       |
 | **SoC floor**           | 0.1                 | fraction      | Minimum battery reserve (10%)                    |

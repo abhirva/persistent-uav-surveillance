@@ -70,8 +70,9 @@ pipeline and 1 Hz tick order.
 |---|---|---|
 | Area | 500 × 500 m | Square |
 | Cell size Δ | 40 m | 12 × 12 grid |
-| Cruise speed v | 4 m/s | |
-| Battery endurance B | 2100 s | 35 min usable |
+| Cruise speed v | 6 m/s | |
+| Max speed v_max | 9 m/s | |
+| Battery endurance B | 2100 s | 35 min total (31.5 min usable) |
 | SoC floor σ_min | 10 % | |
 | Depot offset | 500 m | Single ground station |
 | Revisit cap Θ | 180 s | Analysis bound |

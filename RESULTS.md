@@ -1,7 +1,7 @@
 # Results
 
 Headline metrics from the thesis (Chapter 4, Table 4.2). All runs use the
-baseline 12×12 grid (500×500 m, Δ=40 m), v=4 m/s, B=2100 s, SoC floor 10%,
+baseline 12×12 grid (500×500 m, Δ=40 m), v=6 m/s (v_max=9 m/s), B=2100 s, SoC floor 10%,
 depot offset 500 m, deterministic Round-Robin routing with batch-stagger
 phasing, and Θ=180 s as the revisit-gap analysis bound.
 

@@ -6,7 +6,7 @@ leading to the steady-state baseline and the single-UAV failure demo.
 ## 0) Paper foundation
 - Wrote the staged architecture and math: Stage 0–6 (Battery, Grid, Fleet, Routing/Schedule, Policy, Failure, V&V).
 - Drafted STL clause intentions (C1–C4) and clarified they would be monitored as proxies in this thesis (not formal robustness tooling in‑repo).
-- Baseline/scenario fixed: 500×500 m, 12×12 grid, v=4 m/s, B=2100 s, SoC floor 10%, depot offset 500 m, Θ=180 s for analysis.
+- Baseline/scenario fixed: 500×500 m, 12×12 grid, v=6 m/s (v_max=9 m/s), B=2100 s, SoC floor 10%, depot offset 500 m, Θ=180 s for analysis.
 
 ## 1) Repo bootstrap
 - Created package skeleton (`uav_surveil/`), configuration system, core models (`UAV`, `Cell`, `Route`).

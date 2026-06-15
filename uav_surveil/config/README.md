@@ -95,7 +95,7 @@ config = SystemParameters()
 # Access parameter groups
 config.mission.area_width = 500.0
 config.mission.area_length = 500.0
-config.uav.cruise_speed = 4.0
+config.uav.cruise_speed = 6.0
 config.battery.total_endurance = 2100.0
 config.grid.cell_size = 40.0
 config.stl.max_revisit_gap = 180.0
@@ -125,7 +125,7 @@ fleet_params = config.get_fleet_optimization_params()
 Your thesis reference configuration:
 - 500m × 500m area
 - 500m max ferry distance
-- 4 m/s cruise speed
+- 6 m/s cruise speed (9 m/s max)
 - 2100s battery endurance
 - 10% SoC floor
 
@@ -232,8 +232,8 @@ Configurations are saved as JSON files with full metadata:
     "mission_duration": 4800.0
   },
   "uav": {
-    "cruise_speed": 4.0,
-    "max_speed": 6.0,
+    "cruise_speed": 6.0,
+    "max_speed": 9.0,
     "flight_altitude": 50.0
   },
   "battery": {
